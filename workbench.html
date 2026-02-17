@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>字跑大师 - 生产力工作台 v2.0</title>
+    <style>
+        :root {
+            --c: #00ffcc;
+            --bg: #f0f2f5
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            color: #333
+        }
+
+        .wb {
+            width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, .1);
+            align-content: start
+        }
+
+        .sec {
+            border: 1px solid #edf2f7;
+            padding: 20px;
+            border-radius: 12px
+        }
+
+        h1 {
+            grid-column: span 2;
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 0;
+            font-size: 1.6rem
+        }
+
+        h1 small {
+            font-weight: normal;
+            color: #aaa;
+            font-size: .8rem
+        }
+
+        h2 {
+            margin: 0 0 16px;
+            color: #2d3748;
+            font-size: 1rem;
+            border-bottom: 3px solid var(--c);
+            padding-bottom: 8px
+        }
+
+        .cg {
+            margin-bottom: 16px
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--c)
+        }
+
+        input[type=text],
+        input[type=color],
+        input[type=number] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 11px;
+            resize: vertical
+        }
+
+        .vd {
+            float: right;
+            font-weight: bold;
+            color: #00b38f;
+            background: #e6fffa;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-top: 3px
+        }
+
+        .btn {
+            padding: 14px;
+            background: var(--c);
+            color: #003d33;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all .3s;
+            width: 100%
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 255, 204, .4)
+        }
+
+        .btn-sec {
+            background: #edf2f7;
+            color: #4a5568
+        }
+
+        .btn-sec:hover {
+            background: #e2e8f0;
+            box-shadow: none;
+            transform: none
+        }
+
+        .full {
+            grid-column: span 2
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 8px
+        }
+
+        .preview-table th {
+            background: #f7fafc;
+            padding: 6px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0
+        }
+
+        .preview-table td {
+            padding: 5px 6px;
+            border-bottom: 1px solid #f0f0f0
+        }
+
+        .status {
+            text-align: center;
+            font-size: 14px;
+            padding: 8px;
+            color: #666
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px
+        }
+
+        .stat {
+            background: #f7fafc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px
+        }
+
+        .stat b {
+            color: #00b38f
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wb">
+        <h1>字跑大师 — 生产力工作台 <small>v2.0</small></h1>
+
+        <div class="sec">
+            <h2>📂 数据导入</h2>
+            <div class="cg">
+                <label>1. 单元生字 CSV 文件</label>
+                <input type="file" id="csvFile" accept=".csv">
+                <p class="hint">需包含 word, pinyin 列</p>
+            </div>
+            <div id="csv-preview"></div>
+            <div class="cg">
+                <label>单元标题</label>
+                <input type="text" id="unitTitle" value="人教版四年级上册·第一单元">
+            </div>
+            <div class="cg">
+                <label>玩家昵称</label>
+                <input type="text" id="nickname" maxlength="16" value="贝贝">
+                <p class="hint" id="nick-hint">2/16 字符</p>
+            </div>
+            <div class="cg">
+                <label>主题色</label>
+                <input type="color" id="themeColor" value="#00ffcc">
+            </div>
+        </div>
+
+        <div class="sec">
+            <h2>⚙️ 游戏参数</h2>
+            <div class="cg">
+                <label>单字关时限 (秒) <span class="vd" id="v-lt">40</span></label>
+                <input type="range" id="p-lt" min="15" max="120" step="5" value="40">
+            </div>
+            <div class="cg">
+                <label>初始生命值 <span class="vd" id="v-lives">3</span></label>
+                <input type="range" id="p-lives" min="1" max="10" step="0.5" value="3">
+            </div>
+            <div class="cg">
+                <label>通关正确数 <span class="vd" id="v-win">9</span></label>
+                <input type="range" id="p-win" min="3" max="20" step="1" value="9">
+            </div>
+            <div class="cg">
+                <label>连击通关数 <span class="vd" id="v-streak">4</span></label>
+                <input type="range" id="p-streak" min="2" max="10" step="1" value="4">
+            </div>
+            <h2 style="margin-top:16px">📈 难度曲线</h2>
+            <div class="cg">
+                <label>起始速度 <span class="vd" id="v-ss">2</span></label>
+                <input type="range" id="p-ss" min="1" max="8" step="0.5" value="2">
+            </div>
+            <div class="cg">
+                <label>终止速度 <span class="vd" id="v-se">6</span></label>
+                <input type="range" id="p-se" min="2" max="15" step="0.5" value="6">
+            </div>
+            <div class="cg">
+                <label>生成间隔起始 (ms) <span class="vd" id="v-is">2000</span></label>
+                <input type="range" id="p-is" min="500" max="4000" step="100" value="2000">
+            </div>
+            <div class="cg">
+                <label>生成间隔终止 (ms) <span class="vd" id="v-ie">800</span></label>
+                <input type="range" id="p-ie" min="200" max="2000" step="100" value="800">
+            </div>
+        </div>
+
+        <div class="full">
+            <button class="btn" id="buildBtn">🚀 生成独立游戏HTML文件</button>
+            <div class="status" id="status">请先上传 CSV 数据文件</div>
+        </div>
+    </div>
+
+    <script>
+        // 滑块实时更新
+        const sliders = [
+            ['lt', 'v-lt'], ['lives', 'v-lives'], ['win', 'v-win'], ['streak', 'v-streak'],
+            ['ss', 'v-ss'], ['se', 'v-se'], ['is', 'v-is'], ['ie', 'v-ie']
+        ];
+        sliders.forEach(([id, vid]) => {
+            const el = document.getElementById('p-' + id);
+            const disp = document.getElementById(vid);
+            el.oninput = () => { disp.textContent = el.value; };
+        });
+
+        // 昵称长度
+        const nickEl = document.getElementById('nickname');
+        const nickHint = document.getElementById('nick-hint');
+        nickEl.oninput = () => {
+            const len = nickEl.value.replace(/[^\x00-\xff]/g, '00').length;
+            nickHint.textContent = `${len}/16 字符`;
+            nickHint.style.color = len > 16 ? '#e53e3e' : '#a0aec0';
+        };
+
+        // CSV 解析
+        let csvData = null;
+        function csvToJson(csv) {
+            const lines = csv.trim().split(/\r?\n/);
+            const headers = lines[0].replace(/^\uFEFF/, '').split(',').map(h => h.trim());
+            return lines.slice(1).filter(l => l.trim()).map(line => {
+                const vals = line.split(',');
+                return headers.reduce((obj, h, i) => { obj[h] = vals[i] ? vals[i].trim() : ''; return obj; }, {});
+            });
+        }
+
+        document.getElementById('csvFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const text = await file.text();
+            csvData = csvToJson(text);
+            const preview = document.getElementById('csv-preview');
+            const pinyinSet = new Set(csvData.map(d => d.pinyin));
+
+            preview.innerHTML = `
+        <div class="stats-bar">
+            <div class="stat">生字数：<b>${csvData.length}</b></div>
+            <div class="stat">拼音数：<b>${pinyinSet.size}</b></div>
+            <div class="stat">预计关卡：<b>${pinyinSet.size}</b></div>
+            <div class="stat">预计时长：<b>${Math.ceil(pinyinSet.size * 40 / 60)}分钟</b></div>
+        </div>
+        <table class="preview-table">
+            <tr><th>字</th><th>拼音</th><th>部首</th><th>常用词</th></tr>
+            ${csvData.slice(0, 10).map(d => `<tr><td>${d.word}</td><td>${d.pinyin}</td><td>${d.radical || ''}</td><td>${d.words_std || ''}</td></tr>`).join('')}
+            ${csvData.length > 10 ? `<tr><td colspan="4" style="color:#aaa;text-align:center">...共 ${csvData.length} 条</td></tr>` : ''}
+        </table>`;
+            document.getElementById('status').textContent = `✅ 已加载 ${csvData.length} 个生字，${pinyinSet.size} 个拼音`;
+        });
+
+        // 游戏模板（内嵌）
+        const GAME_TEMPLATE = `TEMPLATE_PLACEHOLDER`;
+
+        // 生成
+        document.getElementById('buildBtn').onclick = async () => {
+            if (!csvData || csvData.length === 0) {
+                alert('请先上传 CSV 数据文件！');
+                return;
+            }
+            const status = document.getElementById('status');
+            status.textContent = '正在生成...';
+
+            try {
+                // 读取 index.html 模板 - 尝试 fetch，如果失败则使用文件上传
+                let templateHtml = '';
+                try {
+                    const resp = await fetch('index.html');
+                    if (resp.ok) templateHtml = await resp.text();
+                    else throw new Error('fetch failed');
+                } catch (e) {
+                    // 无法 fetch，提示用户
+                    alert('请确保 workbench.html 与 index.html 在同一目录下，或通过本地服务器打开');
+                    status.textContent = '❌ 无法读取游戏模板 index.html';
+                    return;
+                }
+
+                // 构造配置
+                const config = {
+                    metadata: {
+                        version: "2.0.0",
+                        unitTitle: document.getElementById('unitTitle').value,
+                        playerName: document.getElementById('nickname').value || '贝贝'
+                    },
+                    rules: {
+                        levelTime: parseInt(document.getElementById('p-lt').value),
+                        winCorrectTotal: parseInt(document.getElementById('p-win').value),
+                        winCorrectStreak: parseInt(document.getElementById('p-streak').value),
+                        failWrongStreak: 4,
+                        initLives: parseFloat(document.getElementById('p-lives').value),
+                        obstacleDamage: 1,
+                        wrongDamage: 0.5
+                    },
+                    difficulty: {
+                        speedStart: parseFloat(document.getElementById('p-ss').value),
+                        speedEnd: parseFloat(document.getElementById('p-se').value),
+                        intervalStart: parseInt(document.getElementById('p-is').value),
+                        intervalEnd: parseInt(document.getElementById('p-ie').value),
+                        obstacleStart: 0.10, obstacleEnd: 0.40,
+                        wrongStart: 0.20, wrongEnd: 0.45,
+                        correctStart: 0.70, correctEnd: 0.15
+                    },
+                    scoring: {
+                        correctBase: 100, comboMax: 5,
+                        dodgeObstacle: 20, levelClear: 500,
+                        timeBonus: 10, streakBonus: 200
+                    },
+                    levels: [
+                        { rank: "识字新兵", threshold: 0 }, { rank: "拼音学徒", threshold: 1000 },
+                        { rank: "汉字猎手", threshold: 3000 }, { rank: "文字侠客", threshold: 6000 },
+                        { rank: "字跑大师", threshold: 10000 }, { rank: "传奇字神", threshold: 20000 }
+                    ],
+                    physics: { tracksX: [0.18, 0.50, 0.82], playerY: 0.82, vanishY: 0.20, gravity: 800 },
+                    ui: {
+                        themeColor: document.getElementById('themeColor').value,
+                        isInvincible: false
+                    },
+                    dataSource: {
+                        offlineData: csvData.map(d => ({ word: d.word, pinyin: d.pinyin }))
+                    }
+                };
+
+                // 替换配置块
+                const configRegex = /window\.WRM_CONFIG\s*=\s*\{[\s\S]*?\};\s*\n\/\/ =+ 配置块结束/;
+                const configStr = `window.WRM_CONFIG = ${JSON.stringify(config, null, 4)};\n// ========== 配置块结束`;
+
+                if (!configRegex.test(templateHtml)) {
+                    throw new Error('模板中未找到 WRM_CONFIG 配置块');
+                }
+
+                const finalHtml = templateHtml.replace(configRegex, configStr);
+
+                // 下载
+                const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
+                const name = `字跑大师_${config.metadata.unitTitle}_${config.metadata.playerName}.html`;
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+
+                status.innerHTML = `<span style="color:green">🎉 已生成：${name}</span>`;
+            } catch (err) {
+                console.error(err);
+                status.innerHTML = `<span style="color:red">❌ ${err.message}</span>`;
+            }
+        };
+    </script>
+</body>
+
+</html>
