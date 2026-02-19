@@ -17,8 +17,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #2d3436;
-            /* Deep Grey Background */
+            background: #0a0a12;
             font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
             touch-action: none;
             user-select: none
@@ -38,170 +37,109 @@
             image-rendering: pixelated
         }
 
-        /* HUD: Top Status Bar - All on Top Right */
         #hud {
             position: absolute;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
             pointer-events: none;
-            z-index: 10;
-            padding: 20px;
-            box-sizing: border-box;
+            color: #fff;
+            z-index: 10
         }
 
-        /* Level & Score -> Top Left (stacked vertically) */
-        #hud .group-left {
-            position: absolute;
-            top: 12px;
-            left: 12px;
+        #hud .row {
             display: flex;
-            flex-direction: column;
-            gap: 6px;
-            align-items: flex-start;
-        }
-
-        /* Hearts -> Top Right */
-        #hud .group-right {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        /* Hide the container row if it exists */
-        #hud .row.top-bar {
-            display: block;
-        }
-
-        /* Yellow Sticky Note Style with Lines */
-        .hud-note {
-            background-color: #ffeaa7;
-            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
-            color: #2d3436;
+            justify-content: space-between;
             padding: 6px 12px;
-            border-radius: 2px;
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            font-weight: bold;
-            font-size: 14px;
-            text-shadow: none;
-            border: 1px solid #e0cba0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 60px;
-        }
-
-        /* Specific rotations for natural feel */
-        .hud-note:nth-child(odd) {
-            transform: rotate(-1deg);
-        }
-
-        .hud-note:nth-child(even) {
-            transform: rotate(1deg);
+            font-size: 13px;
+            opacity: .85
         }
 
         #hud .task {
             display: none
         }
 
-        #hud-hearts {
-            /* Hearts can be on white or yellow, user asked for yellow note background for status bar */
-            color: #d63031;
+        #hud .hearts {
+            font-size: 18px;
+            letter-spacing: 2px
         }
 
-        #hud-score {
-            color: #d63031;
-            font-family: "Comic Sans MS", "Marker Felt", sans-serif;
-            font-size: 20px;
-        }
-
-        #hud-level {
+        #hud .score {
             font-size: 14px;
-            color: #636e72;
+            color: #ffd700
         }
 
-        #hud-timer {
-            /* Timer is now drawn on canvas inside the task ring */
-            display: none !important;
+        #hud .timer {
+            font-size: 14px;
+            color: #ff6b6b
+        }
+
+        #hud .level {
+            font-size: 12px;
+            color: #aaa
         }
 
         #hud .combo {
             position: absolute;
-            top: 42%;
-            /* Middle of runway */
+            top: 350px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            color: #fdcb6e;
-            text-shadow: 3px 3px 0 #d63031;
-            font-weight: bold;
+            transform: translateX(-50%);
+            font-size: 16px;
+            color: #ff0;
+            text-shadow: 0 0 8px rgba(255, 255, 0, .5);
             opacity: 0;
-            transition: opacity .1s, transform .1s;
-            pointer-events: none;
-            z-index: 20;
+            transition: opacity .3s, transform .3s;
             white-space: nowrap;
+            pointer-events: none;
         }
 
         #hud .combo.fade-out {
             opacity: 0 !important;
-            transform: translate(-50%, -80%);
+            transform: translateX(-50%) translateY(-30px);
         }
 
         #start-screen {
             position: fixed;
             inset: 0;
-            background-color: #2d3436;
-            background-image: radial-gradient(circle at center, rgba(50, 50, 50, 0.5) 0%, rgba(0, 0, 0, 0.5) 100%);
-            /* Pattern would be better, but simple dark grey works with the theme */
+            background: radial-gradient(ellipse at 50% 40%, #1a1a2e 0%, #0a0a12 100%);
             z-index: 100;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #fff;
-            font-family: "Microsoft YaHei", sans-serif
+            transition: opacity .6s
         }
 
         #start-screen h1 {
-            font-size: 64px;
-            color: #EBE7DD;
-            /* Runway Color */
-            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+            font-size: 48px;
+            color: #00ffcc;
+            text-shadow: 0 0 30px rgba(0, 255, 204, .4);
             margin-bottom: 8px;
-            letter-spacing: 6px;
-            font-weight: bold;
+            letter-spacing: 6px
         }
 
         #start-screen .sub {
-            color: #b2bec3;
+            color: #888;
             font-size: 14px;
-            margin-bottom: 60px
+            margin-bottom: 40px
         }
 
         #start-screen button {
             padding: 16px 56px;
-            font-size: 24px;
-            /* Sticky Note Style */
-            background-color: #ffeaa7;
-            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
-            border: 1px solid #e0cba0;
-            border-radius: 2px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #00ffcc, #00cc99);
+            border: none;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
-            color: #2d3436;
-            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
-            transition: transform .2s, box-shadow .2s;
-            transform: rotate(-2deg);
-            font-family: "Microsoft YaHei", sans-serif;
+            color: #003d33;
+            box-shadow: 0 0 40px rgba(0, 255, 204, .3);
+            transition: transform .2s, box-shadow .2s
         }
 
         #start-screen button:hover {
-            transform: scale(1.05) rotate(-1deg);
-            box-shadow: 6px 6px 10px rgba(0, 0, 0, 0.5)
+            transform: scale(1.05);
+            box-shadow: 0 0 60px rgba(0, 255, 204, .5)
         }
 
 
@@ -244,51 +182,37 @@
         #level-clear {
             position: fixed;
             inset: 0;
-            background-color: rgba(45, 52, 54, 0.95);
-            /* Dark Grey translucent */
-            z-index: 200;
+            background: rgba(0, 0, 0, .8);
+            z-index: 80;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #fff;
-            backdrop-filter: blur(5px);
+            color: #fff
         }
 
         #level-clear h2 {
-            font-size: 48px;
-            color: #fdcb6e;
-            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
-            margin-bottom: 20px;
+            font-size: 32px;
+            color: #00ffcc;
+            margin-bottom: 12px
         }
 
         #level-clear .info {
-            font-size: 24px;
-            color: #dfe6e9;
+            font-size: 16px;
             line-height: 2;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px
         }
 
         #level-clear button {
             padding: 12px 40px;
-            font-size: 24px;
-            /* Sticky Note Style */
-            background-color: #ffeaa7;
-            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
-            border: 1px solid #e0cba0;
-            border-radius: 2px;
+            font-size: 16px;
+            background: #00ffcc;
+            color: #003d33;
+            border: none;
+            border-radius: 50px;
             cursor: pointer;
-            font-weight: bold;
-            color: #2d3436;
-            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
-            transform: rotate(1deg);
-            transition: transform 0.2s;
-            font-family: "Microsoft YaHei", sans-serif;
-        }
-
-        #level-clear button:hover {
-            transform: scale(1.05) rotate(0deg);
+            font-weight: bold
         }
     </style>
 </head>
@@ -302,18 +226,12 @@
     <div id="wrap">
         <canvas id="gc"></canvas>
         <div id="hud">
-            <div class="row top-bar">
-                <div class="group-left">
-                    <span class="hud-note" id="hud-level">Lv.1 识字新兵</span>
-                    <span class="hud-note" id="hud-score">0分</span>
-                </div>
-                <div class="group-right">
-                    <span class="hud-note" id="hud-hearts">❤️❤️❤️</span>
-                </div>
-            </div>
-            <span id="hud-timer" style="display:none">40s</span>
+            <div class="row"><span class="hearts" id="hud-hearts">❤️❤️❤️</span><span class="timer"
+                    id="hud-timer">40s</span></div>
             <div class="task" id="hud-task">准备起跑</div>
-            <div style="text-align:center"><span id="hud-combo" class="combo"></span></div>
+            <div class="row"><span class="score" id="hud-score">0分</span><span class="level" id="hud-level">Lv.1
+                    识字新兵</span></div>
+            <div style="text-align:center"><span class="combo" id="hud-combo"></span></div>
         </div>
     </div>
 
@@ -414,15 +332,10 @@
             function resize() {
                 const ww = window.innerWidth, wh = window.innerHeight;
                 const scale = Math.min(ww / W, wh / H);
-                const cw = W * scale, ch = H * scale;
-                canvas.style.width = cw + 'px';
-                canvas.style.height = ch + 'px';
+                canvas.style.width = (W * scale) + 'px';
+                canvas.style.height = (H * scale) + 'px';
                 const hud = document.getElementById('hud');
-                hud.style.width = cw + 'px';
-                hud.style.height = ch + 'px';
-                // 居中 HUD 在 canvas 上方
-                hud.style.left = ((ww - cw) / 2) + 'px';
-                hud.style.top = ((wh - ch) / 2) + 'px';
+                hud.style.width = (W * scale) + 'px';
             }
             window.addEventListener('resize', resize); resize();
 
@@ -620,12 +533,12 @@
                 const pCanvas = document.createElement('canvas');
                 pCanvas.width = 256; pCanvas.height = 256;
                 const pCtx = pCanvas.getContext('2d');
-                // 基础深灰色背景
-                pCtx.fillStyle = '#2D3436';
+                // 基础米色
+                pCtx.fillStyle = '#F5F2E9';
                 pCtx.fillRect(0, 0, 256, 256);
                 // 添加噪点纹理
                 for (let i = 0; i < 6000; i++) {
-                    pCtx.fillStyle = 'rgba(255,255,255,0.03)';
+                    pCtx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)';
                     pCtx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
                 }
                 paperPattern = ctx.createPattern(pCanvas, 'repeat');
@@ -804,17 +717,32 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // 落点标记 (已移除)
+                // 落点标记 (小叉号 X)
+                const jumpDuration = (2 * Math.abs(ST.jumpVy)) / CFG.physics.gravity;
+                const diff = getDifficulty();
+                const fallDistance = diff.speed * jumpDuration;
+                const targetY = Math.min(H, landingY + fallDistance);
+
+                ctx.strokeStyle = '#d63031';
+                ctx.lineWidth = 3;
+                const xSz = 8;
+                ctx.beginPath();
+                ctx.moveTo(px - xSz, targetY - xSz);
+                ctx.lineTo(px + xSz, targetY + xSz);
+                ctx.moveTo(px + xSz, targetY - xSz);
+                ctx.lineTo(px - xSz, targetY + xSz);
+                ctx.stroke();
 
                 ctx.restore();
             }
 
-            // ===== v3.0: 纸偶角色绘制 (Paper Puppet - Back View & Scaled) =====
+            // ===== v2.6: 角色绘制（正面视角，面朝任务区奔跑）=====
+            // ===== v3.0: 纸偶角色绘制 (Paper Puppet) =====
             function drawPlayer() {
                 const ti = ST.trackIndex;
                 const py = H * CFG.physics.playerY;
                 const px = trackX(ti, py);
-                const baseScale = CFG.physics.playerScale * 1.5; // v3.2: 放大 50%
+                const baseScale = CFG.physics.playerScale;
                 const sX = baseScale * (2 - ST.landingScale);
                 const sY = baseScale * ST.landingScale;
 
@@ -837,9 +765,9 @@
 
                 // 影子 (硬边深色椭圆)
                 ctx.save();
-                ctx.fillStyle = 'rgba(0,0,0,0.5)'; // 深色硬投影
+                ctx.fillStyle = 'rgba(0,0,0,0.2)'; // 硬投影
                 const shadowScale = Math.max(0.2, 1 - jy / 200);
-
+                // 投影稍微偏移模拟厚度
                 ctx.beginPath();
                 ctx.ellipse(px + 4, py + 8 * sY + 2, 18 * sX * shadowScale, 5 * sY * shadowScale, 0, 0, Math.PI * 2);
                 ctx.fill();
@@ -860,7 +788,7 @@
                     ctx.strokeStyle = color;
                     ctx.lineWidth = w;
                     ctx.lineCap = 'round';
-                    // 模拟剪纸边缘
+                    // 模拟剪纸边缘的粗线条
                     ctx.moveTo(x1, y1);
                     ctx.lineTo(x2, y2);
                     ctx.stroke();
@@ -879,7 +807,6 @@
                     legSwingX = 2 * sX;
                 }
 
-                // 下半身 (腿) - Leg drawing logic
                 // 左腿
                 drawLimb(px - 4 * sX, by - 4 * sY, px - 4 * sX - legSwingX * 0.3, by + 10 * sY - legSwingY, pantsColor, limbW); // 大腿
                 drawLimb(px - 4 * sX - legSwingX * 0.3, by + 10 * sY - legSwingY, px - 4 * sX, by + 18 * sY - legSwingY * 0.5, pantsColor, limbW); // 小腿
@@ -888,68 +815,51 @@
                 drawLimb(px + 4 * sX, by - 4 * sY, px + 4 * sX + legSwingX * 0.3, by + 10 * sY + legSwingY, pantsColor, limbW);
                 drawLimb(px + 4 * sX + legSwingX * 0.3, by + 10 * sY + legSwingY, px + 4 * sX, by + 18 * sY + legSwingY * 0.5, pantsColor, limbW);
 
-                // 身体 (圆角矩形纸片) - 背面视角，无需领口装饰
+                // 身体 (圆角矩形纸片)
                 ctx.fillStyle = '#0984e3'; // 蓝色衣服
-                const bodyRot = runCycle * 0.1;
-                ctx.save();
-                ctx.translate(px, by - bodyH / 2);
-                ctx.rotate(bodyRot);
-                roundRect(-bodyW / 2, -bodyH / 2, bodyW, bodyH, 4 * sX);
-                // 背部装饰 (简单的线条或 Logo) - 可选
-                // ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                // ctx.fillRect(-bodyW*0.3, -bodyH*0.2, bodyW*0.6, 2*sY);
-                ctx.restore();
-
-                // 头部 (背面 - 主要是头发)
-                const headY = by - bodyH - headR * 0.8;
-
-                // 1. 皮肤 (脖子/耳根部分)
-                ctx.fillStyle = skinColor;
-                ctx.beginPath(); ctx.arc(px, headY, headR, 0, Math.PI * 2); ctx.fill();
-
-                // 2. 头发 (背面完全覆盖后脑勺)
-                ctx.fillStyle = '#2d3436';
+                // 绘制带旋转的身体
                 ctx.beginPath();
-                ctx.arc(px, headY, headR * 1.1, Math.PI, Math.PI * 2); // 上半球
-                // 下部自然的短发发际线
-                ctx.lineTo(px + headR * 1.1, headY + headR * 0.5);
-                ctx.quadraticCurveTo(px, headY + headR * 1.2, px - headR * 1.1, headY + headR * 0.5);
-                ctx.fill();
+                const bodyRot = runCycle * 0.1;
+                roundRect(px - bodyW / 2, by - bodyH - headR * 0.5, bodyW, bodyH, 4 * sX);
+                // 衣服领口装饰
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(px, by - bodyH - headR * 0.5, 4 * sX, 0, Math.PI); ctx.fill();
+
+                // 头部 (肤色纸片)
+                ctx.fillStyle = skinColor;
+                ctx.beginPath(); ctx.arc(px, by - bodyH - headR * 1.2, headR, 0, Math.PI * 2); ctx.fill();
+                // 脸颊红晕
+                ctx.fillStyle = '#fab1a0';
+                ctx.beginPath(); ctx.arc(px - 4 * sX, by - bodyH - headR * 1.2 + 2 * sY, 2 * sX, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(px + 4 * sX, by - bodyH - headR * 1.2 + 2 * sY, 2 * sX, 0, Math.PI * 2); ctx.fill();
+                // 眼睛
+                ctx.fillStyle = '#333';
+                ctx.beginPath(); ctx.arc(px - 3 * sX, by - bodyH - headR * 1.4, 1.5 * sX, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(px + 3 * sX, by - bodyH - headR * 1.4, 1.5 * sX, 0, Math.PI * 2); ctx.fill();
 
                 // 手臂
                 let armSwingY = -runCycle * 10 * sY * swingMultiplier;
                 if (ST.isJumping) armSwingY = -12 * sY;
 
-                // 左臂 (Swing opposite to legs usually, but here runCycle is same? runCycle2 is cos.
-                // Standard: Left Leg forward -> Right Arm forward.
-                // legSwing is based on sin(t).
-                // Let's use cos(t) for arms or inverted sin.
-                const armCycle = -runCycle;
-
-                // Arms attached at shoulders
-                const shoulderY = by - bodyH + 2 * sY;
-                const armW = limbW * 0.9;
-
                 // 左臂
-                drawLimb(px - bodyW / 2, shoulderY, px - bodyW / 2 - 6 * sX, shoulderY + 8 * sY + armSwingY, skinColor, armW);
-                drawLimb(px - bodyW / 2 - 6 * sX, shoulderY + 8 * sY + armSwingY, px - bodyW / 2 - 8 * sX, shoulderY + 16 * sY + armSwingY * 1.5, skinColor, armW);
+                drawLimb(px - bodyW / 2, by - bodyH + 2 * sY, px - bodyW / 2 - 6 * sX, by - bodyH / 2 - armSwingY * 0.4, skinColor, limbW * 0.9);
+                drawLimb(px - bodyW / 2 - 6 * sX, by - bodyH / 2 - armSwingY * 0.4, px - bodyW / 2 - 4 * sX, by - bodyH / 2 + 8 * sY - armSwingY * 0.2, skinColor, limbW * 0.9);
 
                 // 右臂
-                drawLimb(px + bodyW / 2, shoulderY, px + bodyW / 2 + 6 * sX, shoulderY + 8 * sY - armSwingY, skinColor, armW);
-                drawLimb(px + bodyW / 2 + 6 * sX, shoulderY + 8 * sY - armSwingY, px + bodyW / 2 + 8 * sX, shoulderY + 16 * sY - armSwingY * 1.5, skinColor, armW);
+                drawLimb(px + bodyW / 2, by - bodyH + 2 * sY, px + bodyW / 2 + 6 * sX, by - bodyH / 2 + armSwingY * 0.4, skinColor, limbW * 0.9);
+                drawLimb(px + bodyW / 2 + 6 * sX, by - bodyH / 2 + armSwingY * 0.4, px + bodyW / 2 + 4 * sX, by - bodyH / 2 + 8 * sY + armSwingY * 0.2, skinColor, limbW * 0.9);
 
                 // 昵称标签 (纸条风格)
-                const textW = ctx.measureText(CFG.metadata.playerName).width;
-                const nameY = headY - headR - 10 * sY; // 头顶上方
-
+                const hue = (ST.frameCount * 2) % 360;
                 ctx.font = `bold ${14 * sY}px "Microsoft YaHei"`; ctx.textAlign = 'center';
                 // 白色底标签
+                const textW = ctx.measureText(CFG.metadata.playerName).width;
                 ctx.fillStyle = '#fff';
-                ctx.fillRect(px - textW / 2 - 4, nameY - 14, textW + 8, 18);
-                ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.strokeRect(px - textW / 2 - 4, nameY - 14, textW + 8, 18);
+                ctx.fillRect(px - textW / 2 - 4, by - bodyH - headR * 3.0 - 14, textW + 8, 18);
+                ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.strokeRect(px - textW / 2 - 4, by - bodyH - headR * 3.0 - 14, textW + 8, 18);
 
                 ctx.fillStyle = '#333';
-                ctx.fillText(CFG.metadata.playerName, px, nameY);
+                ctx.fillText(CFG.metadata.playerName, px, by - bodyH - headR * 2.8);
 
                 ctx.restore();
             }
@@ -973,7 +883,7 @@
 
             // ===== 圆形任务UI (中心点与消失点重合) =====
             // 绘制游戏标题
-            // 构建游戏标题 (墨水风格 -> 跑道色)
+            // 构建游戏标题 (墨水风格)
             function drawGameTitle() {
                 ctx.save();
                 ctx.font = 'bold 36px "Microsoft YaHei"';
@@ -981,103 +891,69 @@
                 ctx.textBaseline = 'top';
 
                 // 黑色水墨阴影
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillStyle = '#333';
                 ctx.fillText('字跑大师', W / 2, 22);
-                // 主色 (跑道颜色)
-                ctx.fillStyle = '#EBE7DD';
+                // 主色
+                ctx.fillStyle = '#2d3436';
                 ctx.fillText('字跑大师', W / 2, 20);
 
                 ctx.restore();
             }
 
             function drawTaskRing() {
-                // Position slightly lower to accommodate larger size
                 const titleBottom = 20 + 36 + 10;
                 const cx = W / 2;
-                const ringR = W / 4.5;
-                const cy = titleBottom + ringR + 20;
+                const cy = titleBottom + 80;
+                const ringR = W / 6;
 
                 ctx.save();
-                ctx.translate(cx, cy);
 
-                // 1. 牛皮纸吊牌底座 (Kraft Paper Tag Base)
-                // 阴影
-                ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4;
+                // 1. 贴纸底色 (圆形白纸)
+                ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(cx, cy, ringR, 0, Math.PI * 2); ctx.fill();
+                ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
-                // 外圈 (深棕色/牛皮纸色)
-                ctx.fillStyle = '#8d6e63';
-                ctx.beginPath(); ctx.arc(0, 0, ringR, 0, Math.PI * 2); ctx.fill();
+                // 2. 边缘缝线
+                ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
+                ctx.beginPath(); ctx.arc(cx, cy, ringR - 4, 0, Math.PI * 2); ctx.stroke();
+                ctx.setLineDash([]);
 
-                // 纹理 (简单噪点)
-                ctx.save();
-                ctx.fillStyle = 'rgba(0,0,0,0.1)';
-                for (let i = 0; i < 100; i++) {
-                    const r = Math.random() * ringR;
-                    const a = Math.random() * Math.PI * 2;
-                    ctx.fillRect(Math.cos(a) * r, Math.sin(a) * r, 2, 2);
-                }
-                ctx.restore();
+                // 3. 进度印章
+                const segmentCount = CFG.rules.winCorrectTotal;
+                const segmentAngle = (Math.PI * 2) / segmentCount;
+                const startAngle = -Math.PI / 2;
 
-                // 2. 内圈 (米白纸)
-                const innerR = ringR * 0.82;
-                ctx.fillStyle = '#faf3e0'; // Warmer
-                ctx.beginPath(); ctx.arc(0, 0, innerR, 0, Math.PI * 2); ctx.fill();
+                for (let i = 0; i < segmentCount; i++) {
+                    const angle = startAngle + i * segmentAngle + segmentAngle / 2;
+                    const r = ringR - 10;
+                    const px = cx + Math.cos(angle) * r;
+                    const py = cy + Math.sin(angle) * r;
 
-                // 内圈纹理 (增强)
-                ctx.save();
-                ctx.fillStyle = 'rgba(160, 140, 100, 0.08)'; // Brownish noise
-                for (let i = 0; i < 300; i++) {
-                    const r = Math.random() * innerR;
-                    const a = Math.random() * Math.PI * 2;
-                    const s = 1 + Math.random() * 2;
-                    ctx.fillRect(Math.cos(a) * r, Math.sin(a) * r, s, s);
-                }
-                ctx.restore();
-
-                // 纸张边缘内阴影效果
-                ctx.shadowColor = 'transparent';
-                ctx.strokeStyle = '#d7ccc8';
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(0, 0, innerR, 0, Math.PI * 2); ctx.stroke();
-
-                // 3. 外环装饰圆点（铆钉）
-                ctx.shadowColor = 'transparent';
-                const dotR = ringR * 0.96;
-                const dotCount = 16;
-                ctx.fillStyle = '#d7ccc8';
-                for (let i = 0; i < dotCount; i++) {
-                    const a = (Math.PI * 2 * i) / dotCount;
-                    const dx = Math.cos(a) * dotR;
-                    const dy = Math.sin(a) * dotR;
-                    ctx.beginPath();
-                    ctx.arc(dx, dy, 4, 0, Math.PI * 2);
-                    ctx.fill();
+                    if (i < ST.correctTotal) {
+                        // 已完成：红色印章点
+                        ctx.fillStyle = '#d63031';
+                        // 随机微小偏移模拟手工盖章
+                        const rx = px + (Math.sin(i * 132) * 2);
+                        const ry = py + (Math.cos(i * 132) * 2);
+                        ctx.beginPath(); ctx.arc(rx, ry, 5, 0, Math.PI * 2); ctx.fill();
+                    } else {
+                        // 未完成：灰色圆圈
+                        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
+                        ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2); ctx.stroke();
+                    }
                 }
 
-                // 4. (已移除顶部穿孔)
-
-                // 5. 内容展示
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                // 倒计时 (上方红色)
-                const remaining = Math.max(0, Math.ceil(CFG.rules.levelTime - ST.levelTime));
-                const timerFontSize = Math.floor(innerR * 0.35);
-                ctx.fillStyle = remaining <= 10 ? '#ff3c3c' : '#d63031';
-                ctx.font = `bold ${timerFontSize}px "Microsoft YaHei"`;
-                ctx.fillText(remaining + 's', 0, -innerR * 0.45);
-
-                // 拼音 (大号蓝色)
-                ctx.fillStyle = '#2980b9';
-                const fontSize = Math.floor(innerR * 0.7);
-                ctx.font = `bold ${fontSize}px "Microsoft YaHei"`;
-                ctx.fillText(ST.currentPinyin || '--', 0, innerR * 0.05);
-
-                // 进度 (下方小字)
-                const progressText = `${ST.completedWordCount + 1}/${allData.length}`;
+                // 中心拼音 (墨水字)
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#2d3436';
-                ctx.font = `bold ${Math.floor(innerR * 0.25)}px "Microsoft YaHei"`;
-                ctx.fillText(progressText, 0, innerR * 0.55);
+                ctx.font = `bold ${Math.floor(ringR * 0.45)}px "Microsoft YaHei"`;
+                ctx.fillText(ST.currentPinyin || '--', cx, cy - 4);
+
+                // 进度数字
+                ctx.font = `bold ${Math.floor(ringR * 0.22)}px "Microsoft YaHei"`;
+                ctx.fillStyle = '#636e72';
+                ctx.fillText(`${ST.completedWordCount + 1}/${allData.length}`, cx, cy + ringR * 0.45);
 
                 ctx.restore();
             }
@@ -1184,149 +1060,93 @@
                     if (o.type === 'obstacle') s = s * CFG.physics.obstacleScale;
 
                     ctx.save();
-                    ctx.translate(x, o.y);
 
                     if (o.type === 'obstacle') {
-                        // v3.3: 厚牛皮纸箱板立牌 (Thick Corrugated Cardboard)
-                        const w = 50 * s;
-                        const h = 40 * s;
+                        // v3.0: 施工路障 (剪纸风)
+                        // 底层 (白色硬纸板)
+                        const sz = 22 * s;
+                        const barW = sz * 2.2;
+                        const barH = sz * 1.4;
+                        const postW = 5 * s;
 
-                        // 阴影
-                        ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowOffsetY = 5 * s; ctx.shadowBlur = 6 * s;
+                        ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowOffsetY = 3; ctx.shadowBlur = 4;
 
-                        // 1. 立牌底座 (深色硬纸板)
-                        ctx.fillStyle = '#5d4037';
-                        ctx.fillRect(-w / 2, h / 2 - 4 * s, w, 6 * s);
+                        // 绘制整体形状作为底层
+                        ctx.fillStyle = '#fff';
+                        // 左右桩 + 横杠
+                        ctx.fillRect(x - barW / 2 - 2, o.y - barH / 2 - 2, postW + 4, barH + 4); // 左
+                        ctx.fillRect(x + barW / 2 - postW - 2, o.y - barH / 2 - 2, postW + 4, barH + 4); // 右
+                        ctx.fillRect(x - barW / 2, o.y - barH * 0.15 - 2 * s, barW, barH * 0.3 + 4 * s); // 横
 
-                        // 2. 剪纸主体 (波浪形/火焰形)
-                        ctx.beginPath();
-                        const points = [];
-                        const steps = 8;
-                        const stepW = w / steps;
+                        ctx.shadowColor = 'transparent'; //清除阴影，绘制顶层
 
-                        // 左下角
-                        points.push({ x: -w / 2, y: h / 2 - 4 * s });
+                        // 顶层立柱
+                        ctx.fillStyle = '#e67e22'; // 橙色纸
+                        ctx.fillRect(x - barW / 2, o.y - barH / 2, postW, barH);
+                        ctx.fillRect(x + barW / 2 - postW, o.y - barH / 2, postW, barH);
 
-                        // 上边缘波浪 (更圆润)
-                        for (let i = 0; i <= steps; i++) {
-                            const px = -w / 2 + i * stepW;
-                            const py = -h / 2 + Math.sin(i * 0.8 + o.y * 0.1) * 8 * s + (i % 2 == 0 ? 2 * s : -2 * s);
-                            points.push({ x: px, y: py });
+                        // 横杠 (红白条)
+                        for (let i = 0; i < 5; i++) {
+                            ctx.fillStyle = i % 2 === 0 ? '#ff7675' : '#fff';
+                            const segW = (barW - postW * 2) / 5;
+                            ctx.fillRect(x - barW / 2 + postW + i * segW, o.y - barH * 0.15, segW, barH * 0.3);
                         }
 
-                        // 右下角
-                        points.push({ x: w / 2, y: h / 2 - 4 * s });
-
-                        // 闭合并填充
-                        ctx.moveTo(points[0].x, points[0].y);
-                        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
-                        ctx.closePath();
-
-                        // 填充: 牛皮纸渐变
-                        const grad = ctx.createLinearGradient(0, -h, 0, h);
-                        grad.addColorStop(0, '#e67e22'); // 亮橙
-                        grad.addColorStop(1, '#d35400'); // 深橙
-                        ctx.fillStyle = grad;
+                        // 警告牌 (!)
+                        const triSz = sz * 0.6;
+                        const triY = o.y - barH * 0.5;
+                        ctx.fillStyle = '#ffeaa7';
+                        ctx.beginPath();
+                        ctx.moveTo(x, triY - triSz);
+                        ctx.lineTo(x - triSz, triY + triSz * 0.5);
+                        ctx.lineTo(x + triSz, triY + triSz * 0.5);
                         ctx.fill();
 
-                        // 3. 增加厚度 (侧面 3D)
-                        ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = '#8d6e63'; // 侧面深褐色
-                        ctx.beginPath();
-                        const thickness = 6 * s;
-                        for (let i = 1; i < points.length; i++) {
-                            ctx.moveTo(points[i - 1].x, points[i - 1].y);
-                            ctx.lineTo(points[i].x, points[i].y);
-                            ctx.lineTo(points[i].x + thickness, points[i].y + thickness * 0.5);
-                            ctx.lineTo(points[i - 1].x + thickness, points[i - 1].y + thickness * 0.5);
-                        }
-                        ctx.fill();
-
-                        // 4. 瓦楞纸纹理 (内部纹理)
-                        ctx.strokeStyle = 'rgba(0,0,0,0.15)'; // 深色压痕
-                        ctx.lineWidth = 2 * s;
-                        ctx.beginPath();
-                        // 竖向条纹
-                        const stripeCount = 6;
-                        const stripeGap = w / stripeCount;
-                        for (let i = 1; i < stripeCount; i++) {
-                            const sx = -w / 2 + i * stripeGap;
-                            if (sx < w / 2 - 5 * s) { // 简单裁剪
-                                ctx.moveTo(sx, -h / 2 + 10 * s);
-                                ctx.lineTo(sx, h / 2 - 6 * s);
-                            }
-                        }
-                        ctx.stroke();
-
-                        // 材质噪点
-                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                        for (let k = 0; k < 20; k++) {
-                            ctx.fillRect(-w / 2 + Math.random() * w, -h / 2 + Math.random() * h, 2, 2);
-                        }
-
-                        // 警告标识 (喷漆/印章效果)
-                        const triSz = 12 * s;
-                        const triY = 2 * s;
-                        ctx.fillStyle = 'rgba(50, 50, 50, 0.8)'; // 黑墨水
-                        ctx.beginPath();
-                        ctx.moveTo(0, triY - triSz);
-                        ctx.lineTo(-triSz * 0.8, triY + triSz * 0.6);
-                        ctx.lineTo(triSz * 0.8, triY + triSz * 0.6);
-                        ctx.fill();
-
-                        // 感叹号
-                        ctx.fillStyle = '#e67e22'; // 镂空
-                        ctx.font = `bold ${14 * s}px sans-serif`;
+                        ctx.fillStyle = '#333';
+                        ctx.font = `bold ${10 * s}px sans-serif`;
                         ctx.textAlign = 'center';
-                        ctx.fillText('!', 0, triY + triSz * 0.4);
+                        ctx.fillText('!', x, triY + triSz * 0.2);
 
                     } else {
-                        // v3.2: 统一不规则深黄色方形便签 (Irregular Dark Yellow Square)
-                        const sz = 36 * s;
+                        // 字球 (双层剪纸)
+                        const r = 24 * s;
 
-                        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                        ctx.shadowOffsetY = 4 * s;
-                        ctx.shadowBlur = 3 * s;
+                        // 1. 底层白色轮廓 (带阴影)
+                        ctx.save();
+                        ctx.translate(x, o.y);
+                        ctx.shadowColor = 'rgba(0,0,0,0.2)';
+                        ctx.shadowOffsetY = 3;
+                        ctx.shadowBlur = 2;
 
-                        // 深黄色
-                        ctx.fillStyle = '#f1c40f'; // Vivid Yellow/Orange-Yellow
+                        ctx.fillStyle = '#fff';
+                        // 稍微大一圈的不规则圆
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r + 2 * s, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
 
-                        // 稍微旋转
-                        const rot = ((o.y * 100) % 10 - 5) * 0.02;
-                        ctx.rotate(rot);
-
-                        const w = sz * 1.3;
-                        const h = sz * 1.3;
-
-                        const points = [
-                            { x: -w / 2, y: -h / 2 },
-                            { x: w / 2, y: -h / 2 },
-                            { x: w / 2, y: h / 2 },
-                            { x: -w / 2, y: h / 2 },
-                            { x: -w / 2, y: -h / 2 }
-                        ];
-                        drawRoughPath(ctx, points, true);
+                        // 2. 顶层色纸
+                        ctx.beginPath();
+                        ctx.arc(x, o.y, r, 0, Math.PI * 2);
+                        // 根据类型决定颜色
+                        if (o.type === 'correct') {
+                            ctx.fillStyle = '#55efc4'; // 绿色纸
+                        } else {
+                            // wrong
+                            ctx.fillStyle = '#fab1a0'; // 红色纸
+                            // 错误项加上皱褶纹理
+                            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                            ctx.lineWidth = 1;
+                            ctx.moveTo(x - r * 0.5, o.y - r * 0.2); ctx.lineTo(x + r * 0.5, o.y + r * 0.4); ctx.stroke();
+                        }
                         ctx.fill();
 
-                        // 纸张纹理 (增加噪点)
-                        ctx.fillStyle = 'rgba(0,0,0,0.05)';
-                        for (let k = 0; k < 10; k++) {
-                            ctx.fillRect(-w / 2 + Math.random() * w, -h / 2 + Math.random() * h, 2, 2);
-                        }
-
-                        ctx.shadowColor = 'transparent';
-                        ctx.strokeStyle = '#d4ac0d'; // Darker border
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
-
-                        // 汉字 (墨水风)
+                        // 3. 汉字 (墨水风)
                         ctx.fillStyle = '#2d3436';
-                        ctx.font = `bold ${24 * s}px "Microsoft YaHei"`;
+                        ctx.font = `bold ${22 * s}px "Microsoft YaHei"`;
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText(o.word, 0, 0);
-
-                        // 拼音 (已移除)
+                        ctx.fillText(o.word, x, o.y);
                     }
                     ctx.restore();
                 });

@@ -51,25 +51,28 @@
             box-sizing: border-box;
         }
 
-        /* Level & Score -> Top Left (stacked vertically) */
-        #hud .group-left {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            align-items: flex-start;
-        }
-
-        /* Hearts -> Top Right */
+        /* Timer & Level -> Top Right */
         #hud .group-right {
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 20px;
+            right: 20px;
             display: flex;
-            gap: 6px;
+            gap: 10px;
             align-items: center;
+        }
+
+        /* Hearts & Score -> Top Right (Stacked below Timer/Level) */
+        #hud .group-left {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            left: auto;
+            /* Clear left */
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+            /* Align right */
         }
 
         /* Hide the container row if it exists */
@@ -125,14 +128,15 @@
         }
 
         #hud-timer {
-            /* Timer is now drawn on canvas inside the task ring */
-            display: none !important;
+            color: #d63031;
+            font-family: monospace;
+            font-size: 18px;
         }
 
         #hud .combo {
             position: absolute;
-            top: 42%;
-            /* Middle of runway */
+            top: 25%;
+            /* Middle of runway perspective */
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 48px;
@@ -304,14 +308,14 @@
         <div id="hud">
             <div class="row top-bar">
                 <div class="group-left">
-                    <span class="hud-note" id="hud-level">Lv.1 识字新兵</span>
+                    <span class="hud-note" id="hud-hearts">❤️❤️❤️</span>
                     <span class="hud-note" id="hud-score">0分</span>
                 </div>
                 <div class="group-right">
-                    <span class="hud-note" id="hud-hearts">❤️❤️❤️</span>
+                    <span class="hud-note" id="hud-timer">40s</span>
+                    <span class="hud-note" id="hud-level">Lv.1 识字新兵</span>
                 </div>
             </div>
-            <span id="hud-timer" style="display:none">40s</span>
             <div class="task" id="hud-task">准备起跑</div>
             <div style="text-align:center"><span id="hud-combo" class="combo"></span></div>
         </div>
@@ -414,15 +418,10 @@
             function resize() {
                 const ww = window.innerWidth, wh = window.innerHeight;
                 const scale = Math.min(ww / W, wh / H);
-                const cw = W * scale, ch = H * scale;
-                canvas.style.width = cw + 'px';
-                canvas.style.height = ch + 'px';
+                canvas.style.width = (W * scale) + 'px';
+                canvas.style.height = (H * scale) + 'px';
                 const hud = document.getElementById('hud');
-                hud.style.width = cw + 'px';
-                hud.style.height = ch + 'px';
-                // 居中 HUD 在 canvas 上方
-                hud.style.left = ((ww - cw) / 2) + 'px';
-                hud.style.top = ((wh - ch) / 2) + 'px';
+                hud.style.width = (W * scale) + 'px';
             }
             window.addEventListener('resize', resize); resize();
 
@@ -1040,44 +1039,24 @@
                 ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.arc(0, 0, innerR, 0, Math.PI * 2); ctx.stroke();
 
-                // 3. 外环装饰圆点（铆钉）
-                ctx.shadowColor = 'transparent';
-                const dotR = ringR * 0.96;
-                const dotCount = 16;
-                ctx.fillStyle = '#d7ccc8';
-                for (let i = 0; i < dotCount; i++) {
-                    const a = (Math.PI * 2 * i) / dotCount;
-                    const dx = Math.cos(a) * dotR;
-                    const dy = Math.sin(a) * dotR;
-                    ctx.beginPath();
-                    ctx.arc(dx, dy, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                // 3. (已移除外环进度点)
 
                 // 4. (已移除顶部穿孔)
 
                 // 5. 内容展示
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                // 倒计时 (上方红色)
-                const remaining = Math.max(0, Math.ceil(CFG.rules.levelTime - ST.levelTime));
-                const timerFontSize = Math.floor(innerR * 0.35);
-                ctx.fillStyle = remaining <= 10 ? '#ff3c3c' : '#d63031';
-                ctx.font = `bold ${timerFontSize}px "Microsoft YaHei"`;
-                ctx.fillText(remaining + 's', 0, -innerR * 0.45);
-
                 // 拼音 (大号蓝色)
                 ctx.fillStyle = '#2980b9';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 const fontSize = Math.floor(innerR * 0.7);
                 ctx.font = `bold ${fontSize}px "Microsoft YaHei"`;
-                ctx.fillText(ST.currentPinyin || '--', 0, innerR * 0.05);
+                ctx.fillText(ST.currentPinyin || '--', 0, 0);
 
                 // 进度 (下方小字)
                 const progressText = `${ST.completedWordCount + 1}/${allData.length}`;
                 ctx.fillStyle = '#2d3436';
                 ctx.font = `bold ${Math.floor(innerR * 0.25)}px "Microsoft YaHei"`;
-                ctx.fillText(progressText, 0, innerR * 0.55);
+                ctx.fillText(progressText, 0, innerR * 0.6);
 
                 ctx.restore();
             }
