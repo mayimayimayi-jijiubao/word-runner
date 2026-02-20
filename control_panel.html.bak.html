@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字跑大师 - 游戏设置</title>
+    <style>
+        :root {
+            --c: #00ffcc;
+            --bg: #0a0a12;
+            --panel-bg: #1a1a2e;
+            --text: #ddd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Microsoft YaHei", sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--panel-bg);
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: var(--c);
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 24px;
+        }
+
+        h2 {
+            color: var(--c);
+            font-size: 18px;
+            margin: 20px 0 12px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+        }
+
+        .panel-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .panel-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .val {
+            float: right;
+            color: var(--c);
+            font-weight: bold;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--c);
+            cursor: pointer;
+        }
+
+        input[type=checkbox] {
+            accent-color: var(--c);
+            margin-right: 6px;
+            transform: scale(1.2);
+        }
+
+        input[type=text],
+        select {
+            width: 100%;
+            padding: 6px;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 24px;
+            background: linear-gradient(135deg, #00ffcc, #00cc99);
+            color: #003d33;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+        }
+
+        .status-msg {
+            text-align: center;
+            margin-top: 12px;
+            height: 20px;
+            font-size: 13px;
+            color: var(--c);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🛠️ 游戏控制面板</h1>
+
+        <div style="padding: 0 0 12px 0; text-align: center;">
+            <label style="font-size: 16px; color: #fff; cursor: pointer;">
+                <input type="checkbox" id="cp-invincible"> 无敌模式 (测试专用)
+            </label>
+        </div>
+
+        <div class="panel-content">
+            <div class="panel-column">
+                <h2>📈 难度参数</h2>
+                <div class="param-group">
+                    <label>初始速度 <span class="val" id="cv-ss">2</span></label>
+                    <input type="range" id="cp-ss" min="1" max="10" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label>最终速度 <span class="val" id="cv-se">6</span></label>
+                    <input type="range" id="cp-se" min="2" max="15" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label>生成间隔(ms) 起始 <span class="val" id="cv-is">2000</span></label>
+                    <input type="range" id="cp-is" min="500" max="4000" step="100">
+                </div>
+                <div class="param-group">
+                    <label>生成间隔(ms) 终止 <span class="val" id="cv-ie">800</span></label>
+                    <input type="range" id="cp-ie" min="200" max="2000" step="100">
+                </div>
+                <div class="param-group">
+                    <label>障碍物概率 起始 <span class="val" id="cv-os">0.1</span></label>
+                    <input type="range" id="cp-os" min="0" max="0.6" step="0.05">
+                </div>
+                <div class="param-group">
+                    <label>障碍物概率 终止 <span class="val" id="cv-oe">0.4</span></label>
+                    <input type="range" id="cp-oe" min="0.1" max="0.8" step="0.05">
+                </div>
+                <div class="param-group">
+                    <label>干扰项概率 起始 <span class="val" id="cv-ws">0.2</span></label>
+                    <input type="range" id="cp-ws" min="0" max="0.6" step="0.05">
+                </div>
+                <div class="param-group">
+                    <label>干扰项概率 终止 <span class="val" id="cv-we">0.45</span></label>
+                    <input type="range" id="cp-we" min="0.1" max="0.8" step="0.05">
+                </div>
+            </div>
+
+            <div class="panel-column">
+                <h2>🎮 游戏规则</h2>
+                <div class="param-group">
+                    <label>单字关时限(秒) <span class="val" id="cv-lt">40</span></label>
+                    <input type="range" id="cp-lt" min="15" max="120" step="5">
+                </div>
+                <div class="param-group">
+                    <label>通关正确数 <span class="val" id="cv-wt">9</span></label>
+                    <input type="range" id="cp-wt" min="3" max="20" step="1">
+                </div>
+                <div class="param-group">
+                    <label>初始生命值 <span class="val" id="cv-il">3</span></label>
+                    <input type="range" id="cp-il" min="1" max="10" step="0.5">
+                </div>
+
+                <h2>⚛️ 物理引擎</h2>
+                <div class="param-group">
+                    <label>跳跃力度 <span class="val" id="cv-jf">750</span></label>
+                    <input type="range" id="cp-jf" min="400" max="1500" step="50">
+                </div>
+                <div class="param-group">
+                    <label>重力 (Gravity) <span class="val" id="cv-gv">2000</span></label>
+                    <input type="range" id="cp-gv" min="800" max="4000" step="100">
+                </div>
+                <div class="param-group">
+                    <label>物体远端缩放 <span class="val" id="cv-oss">0.08</span></label>
+                    <input type="range" id="cp-oss" min="0.01" max="0.3" step="0.01">
+                </div>
+                <div class="param-group">
+                    <label>物体近端缩放 <span class="val" id="cv-ose">1.0</span></label>
+                    <input type="range" id="cp-ose" min="0.5" max="2.0" step="0.1">
+                </div>
+                <div class="param-group">
+                    <label>障碍物缩放 <span class="val" id="cv-obs">1.0</span></label>
+                    <input type="range" id="cp-obs" min="0.5" max="2.0" step="0.1">
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;"></div>
+        <details open style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
+            <summary style="cursor:pointer; padding:10px; font-weight:bold; color:#00ffcc;">📝 关卡设计配置</summary>
+            <div style="padding:15px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="param-group">
+                    <label>关卡名称</label>
+                    <input type="text" id="cp-level-name">
+                </div>
+                <div class="param-group">
+                    <label>任务区数据来源</label>
+                    <select id="cp-task-source">
+                        <option value="pinyin">拼音 (pinyin)</option>
+                        <option value="word">汉字 (word)</option>
+                    </select>
+                </div>
+                <div class="param-group">
+                    <label>正确项数据来源</label>
+                    <select id="cp-correct-source">
+                        <option value="word">汉字 (word)</option>
+                    </select>
+                </div>
+                <div class="param-group">
+                    <label>干扰项数据来源</label>
+                    <select id="cp-wrong-source">
+                        <option value="word">汉字 (word)</option>
+                        <option value="word_exclude_homophone">汉字·排除同音字</option>
+                    </select>
+                </div>
+                <div class="param-group">
+                    <label>多音字读音规则</label>
+                    <select id="cp-polyphone-rule">
+                        <option value="use_data_pinyin">使用数据中拼音</option>
+                        <option value="auto">自动（浏览器TTS）</option>
+                    </select>
+                </div>
+                <div class="param-group">
+                    <label>同音字显示规则</label>
+                    <select id="cp-homophone-rule">
+                        <option value="exclusive">互斥（不同时出现）</option>
+                        <option value="allow_both">允许同时出现</option>
+                    </select>
+                </div>
+            </div>
+        </details>
+
+        <button id="save-btn">💾 保存设置并同步</button>
+        <div id="status-msg" class="status-msg">设置已保存！请刷新游戏页面生效</div>
+    </div>
+
+    <script>
+        // 默认配置（作为基准）
+        const DEFAULT_CONFIG = {
+            rules: {
+                levelTime: 40, winCorrectTotal: 9, initLives: 3
+            },
+            difficulty: {
+                speedStart: 2, speedEnd: 6,
+                intervalStart: 2000, intervalEnd: 800,
+                obstacleStart: 0.10, obstacleEnd: 0.40,
+                wrongStart: 0.20, wrongEnd: 0.45
+            },
+            physics: {
+                jumpForce: 750, gravity: 2000,
+                objScaleStart: 0.08, objScaleEnd: 1.0, obstacleScale: 1.0
+            },
+            levelDesign: {
+                levelName: "音找字",
+                taskSource: "pinyin",
+                correctSource: "word",
+                wrongSource: "word_exclude_homophone",
+                polyphoneRule: "use_data_pinyin",
+                homophoneRule: "exclusive"
+            },
+            ui: { isInvincible: false }
+        };
+
+        // 当前配置
+        let CFG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+
+        // 绑定所有输入控件
+        const inputs = {
+            // Difficulty
+            'cp-ss': ['difficulty', 'speedStart'],
+            'cp-se': ['difficulty', 'speedEnd'],
+            'cp-is': ['difficulty', 'intervalStart'],
+            'cp-ie': ['difficulty', 'intervalEnd'],
+            'cp-os': ['difficulty', 'obstacleStart'],
+            'cp-oe': ['difficulty', 'obstacleEnd'],
+            'cp-ws': ['difficulty', 'wrongStart'],
+            'cp-we': ['difficulty', 'wrongEnd'],
+            // Rules
+            'cp-lt': ['rules', 'levelTime'],
+            'cp-wt': ['rules', 'winCorrectTotal'],
+            'cp-il': ['rules', 'initLives'],
+            // Physics
+            'cp-jf': ['physics', 'jumpForce'],
+            'cp-gv': ['physics', 'gravity'],
+            'cp-oss': ['physics', 'objScaleStart'],
+            'cp-ose': ['physics', 'objScaleEnd'],
+            'cp-obs': ['physics', 'obstacleScale'],
+            // Level Design
+            'cp-level-name': ['levelDesign', 'levelName'],
+            'cp-task-source': ['levelDesign', 'taskSource'],
+            'cp-correct-source': ['levelDesign', 'correctSource'],
+            'cp-wrong-source': ['levelDesign', 'wrongSource'],
+            'cp-polyphone-rule': ['levelDesign', 'polyphoneRule'],
+            'cp-homophone-rule': ['levelDesign', 'homophoneRule']
+        };
+
+        function loadConfig() {
+            try {
+                const saved = localStorage.getItem('WRM_UserConfig');
+                if (saved) {
+                    const userConfig = JSON.parse(saved);
+                    // 深度合并
+                    if (userConfig.ui) Object.assign(CFG.ui, userConfig.ui);
+                    if (userConfig.rules) Object.assign(CFG.rules, userConfig.rules);
+                    if (userConfig.difficulty) Object.assign(CFG.difficulty, userConfig.difficulty);
+                    if (userConfig.physics) Object.assign(CFG.physics, userConfig.physics);
+                    if (userConfig.levelDesign) Object.assign(CFG.levelDesign, userConfig.levelDesign);
+                }
+            } catch (e) { console.error(e); }
+            updateUI();
+        }
+
+        function updateUI() {
+            // UI Checkbox
+            document.getElementById('cp-invincible').checked = CFG.ui.isInvincible;
+
+            // Inputs
+            for (const [id, path] of Object.entries(inputs)) {
+                const el = document.getElementById(id);
+                if (!el) continue;
+                const val = CFG[path[0]][path[1]];
+
+                if (el.tagName === 'SELECT' || el.type === 'text') {
+                    el.value = val;
+                } else {
+                    el.value = val;
+                    // update display span
+                    const span = document.getElementById(id.replace('cp-', 'cv-'));
+                    if (span) span.textContent = val;
+                }
+            }
+        }
+
+        function saveConfig() {
+            // Read values
+            CFG.ui.isInvincible = document.getElementById('cp-invincible').checked;
+
+            for (const [id, path] of Object.entries(inputs)) {
+                const el = document.getElementById(id);
+                let val = el.value;
+                if (el.type === 'range' || el.type === 'number') {
+                    val = parseFloat(val);
+                }
+                CFG[path[0]][path[1]] = val;
+            }
+
+            // Save
+            localStorage.setItem('WRM_UserConfig', JSON.stringify(CFG));
+
+            // Show status
+            const msg = document.getElementById('status-msg');
+            msg.style.opacity = '1';
+            setTimeout(() => msg.style.opacity = '0', 2000);
+        }
+
+        // Listeners
+        document.getElementById('save-btn').onclick = saveConfig;
+
+        // Range listeners for spans
+        document.querySelectorAll('input[type=range]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const span = document.getElementById(e.target.id.replace('cp-', 'cv-'));
+                if (span) span.textContent = e.target.value;
+            });
+        });
+
+        // Init
+        loadConfig();
+    </script>
+</body>
+
+</html>

@@ -406,23 +406,14 @@
                 hitDistractor: -3, hitObstacle: -5,
                 comboRewards: { 2: 20, 3: 30, 4: 40, 5: 50 }
             },
-            character: {
-                nickname: "贝贝",
-                grades: [
-                    { name: "童生", score: 0 },
-                    { name: "秀才", score: 100 },
-                    { name: "贡生", score: 200 },
-                    { name: "举人", score: 300 },
-                    { name: "解元", score: 400 },
-                    { name: "贡士", score: 500 },
-                    { name: "会元", score: 600 },
-                    { name: "进士", score: 700 },
-                    { name: "探花", score: 800 },
-                    { name: "榜眼", score: 900 },
-                    { name: "状元", score: 1000 }
-                ]
-            },
-            // levels 数组已移除，现在通过 CFG.character.grades 动态获取
+            levels: [
+                { rank: "识字新兵", threshold: 0 },
+                { rank: "拼音学徒", threshold: 1000 },
+                { rank: "汉字猎手", threshold: 3000 },
+                { rank: "文字侠客", threshold: 6000 },
+                { rank: "字跑大师", threshold: 10000 },
+                { rank: "传奇字神", threshold: 20000 }
+            ],
             physics: {
                 tracksX: [0.166666, 0.5, 0.833333], // v2.9.2: 真正三等分跑道（1/6, 1/2, 5/6）
                 playerY: 0.90, // 下移至 90%
@@ -469,9 +460,6 @@
         ; (function () {
             "use strict";
             const CFG = window.WRM_CONFIG;
-            if (window.OFFLINE_CONFIG) {
-                console.log('🚀 强制启动离线配置模式 (OFFLINE_CONFIG)');
-            }
             const W = 450, H = 800;
             const canvas = document.getElementById('gc');
             const ctx = canvas.getContext('2d');
@@ -540,7 +528,7 @@
                 levelIndex: 0, levelTime: 0, levelTimer: 0,
                 correctTotal: 0, correctStreak: 0, wrongStreak: 0,
                 currentPinyin: '', currentWord: '', currentCorrectWord: '', // v2.8: 本关唯一正确汉字
-                trackIndex: 1, playerJump: 0, vy: 0, isGrounded: true, playerAnim: 0,
+                trackIndex: 1, playerJump: 0, jumpVy: 0, isJumping: false, playerAnim: 0,
                 landingScale: 1.0, // 落地挤压缩放
                 isRunning: false, runSpeedMultiplier: 1.0, // v2.8: 跑动状态和速度倍率
                 runAnimPhase: 0, // v2.8.3: 跑动动画阶段
@@ -558,8 +546,8 @@
             // ===== 关卡数据 =====
             // v4.0: 用函数取代const，确保loadConfig后始终读取最新数据
             function getAllData() { return CFG.dataSource.offlineData; }
-            let pinyinList = getAllData().map(d => d.pinyin);
-            let wordList = getAllData().map(d => d.word); // v4.1: 字找音用
+            let pinyinList = [...new Set(getAllData().map(d => d.pinyin))];
+            let wordList = [...new Set(getAllData().map(d => d.word))]; // v4.1: 字找音用
 
             // ===== 数组洗牌 =====
             function shuffleArray(arr) {
@@ -572,16 +560,9 @@
 
             // ===== 等级计算 =====
             function getLevel(score) {
-                // 优先使用配置中的等级规则
-                const grades = (CFG.character && CFG.character.grades) || [
-                    { name: "识字新兵", score: 0 },
-                    { name: "大师", score: 10000 }
-                ];
-                let lv = grades[0];
-                for (const l of grades) {
-                    if (score >= l.score) lv = l;
-                }
-                return { rank: lv.name || lv.rank };
+                let lv = CFG.levels[0];
+                for (const l of CFG.levels) { if (score >= l.threshold) lv = l; }
+                return lv;
             }
 
             // ===== 难度曲线 =====
@@ -601,22 +582,9 @@
             // ===== localStorage 配置管理 =====
             function loadConfig() {
                 try {
-                    // 优先读取内嵌配置（独立导出包专用，解决 File 协议限制）
-                    let config = null;
-                    if (window.OFFLINE_CONFIG) {
-                        config = window.OFFLINE_CONFIG;
-                        console.log('📦 使用内嵌配置 (OFFLINE_CONFIG) 启动');
-                    } else if (window.FORCE_OFFLINE_CONFIG) {
-                        config = window.FORCE_OFFLINE_CONFIG;
-                        console.log('📦 使用内嵌配置 (FORCE_OFFLINE_CONFIG) 启动');
-                    } else if (window.EMBEDDED_CONFIG) {
-                        config = window.EMBEDDED_CONFIG;
-                        console.log('📦 使用内嵌配置 (EMBEDDED_CONFIG) 启动');
-                    } else {
-                        const saved = localStorage.getItem('WRM_UserConfig');
-                        if (!saved) return;
-                        config = JSON.parse(saved);
-                    }
+                    const saved = localStorage.getItem('WRM_UserConfig');
+                    if (!saved) return;
+                    const config = JSON.parse(saved);
 
                     // ── 兼容旧格式（直接有 rules/physics/difficulty/ui 字段）──
                     if (config.rules) Object.assign(CFG.rules, config.rules);
@@ -638,7 +606,7 @@
                             if (pe.itemScale.near !== undefined) CFG.physics.objScaleEnd = pe.itemScale.near;
                         }
                         if (pe.physics) {
-                            if (pe.physics.jumpForce !== undefined) CFG.physics.jumpForce = pe.physics.jumpForce;
+                            if (pe.physics.airTime !== undefined) CFG.physics.jumpForce = pe.physics.airTime;
                             if (pe.physics.gravity !== undefined) CFG.physics.gravity = pe.physics.gravity;
                         }
                     }
@@ -731,19 +699,6 @@
 
                 } catch (e) {
                     console.warn('Failed to load config:', e);
-                }
-                syncUIText();
-            }
-
-            // v4.3: 同步 UI 文字 (标题/首屏)
-            function syncUIText() {
-                if (CFG.metadata && CFG.metadata.unitTitle) {
-                    const title = CFG.metadata.unitTitle;
-                    document.title = title + ' - 字跑大师';
-                    // 保持启动界面标题为“字跑大师”固定不变
-                    // const h1 = document.querySelector('#start-screen h1');
-                    // if (h1) h1.textContent = title; 
-                    console.log('📝 已同步文档 Title:', title);
                 }
             }
             function saveConfig() {
@@ -1005,7 +960,7 @@
             // ===== 跳跃轨迹绘制 =====
             // ===== 跳跃轨迹绘制 (缝纫线风格) =====
             function drawJumpTrajectory() {
-                if (ST.isGrounded) return;
+                if (!ST.isJumping) return;
 
                 ctx.save();
                 ctx.strokeStyle = '#555'; // 深色缝衣线
@@ -1060,7 +1015,7 @@
 
                 // 身体颠簸
                 let bobbing = 0;
-                if (ST.isRunning && ST.isGrounded) {
+                if (ST.isRunning && !ST.isJumping) {
                     bobbing = Math.abs(Math.sin(animPhase * 2)) * 6 * sY;
                 }
                 const by = py - jy - bobbing;
@@ -1104,7 +1059,7 @@
                 let legSwingY = runCycle * 12 * sY * swingMultiplier;
                 let legSwingX = Math.abs(runCycle) * 3 * sX;
 
-                if (!ST.isGrounded) {
+                if (ST.isJumping) {
                     legSwingY = 8 * sY;
                     legSwingX = 2 * sX;
                 }
@@ -1148,7 +1103,7 @@
 
                 // 手臂
                 let armSwingY = -runCycle * 10 * sY * swingMultiplier;
-                if (!ST.isGrounded) armSwingY = -12 * sY;
+                if (ST.isJumping) armSwingY = -12 * sY;
 
                 // 左臂 (Swing opposite to legs usually, but here runCycle is same? runCycle2 is cos.
                 // Standard: Left Leg forward -> Right Arm forward.
@@ -1273,7 +1228,7 @@
                 // 3. 外环呼吸灯（小关状态）— 数量 = 累计正确数
                 ctx.shadowColor = 'transparent';
                 const dotR = ringR * 0.96;
-                const maxDots = CFG.rules.winCorrectTotal;
+                const maxDots = 16;
                 const breathAlpha = 0.5 + 0.5 * Math.sin(ST.frameCount * 0.06); // 呼吸节奏
                 for (let i = 0; i < maxDots; i++) {
                     const a = (Math.PI * 2 * i) / maxDots;
@@ -1436,7 +1391,7 @@
 
                         if (dist < 30 * o.scale) {
                             // 玩家在跳跃中 → 跳过
-                            if (!ST.isGrounded && ST.playerJump > 30) {
+                            if (ST.isJumping && ST.playerJump > 30) {
                                 // 跳过不触发碰撞，不加分
                             } else {
                                 handleCollision(o);
@@ -1908,18 +1863,18 @@
                 const animSpeed = ST.isRunning ? 0.2 : 0.12;
                 ST.playerAnim += animSpeed;
 
-                // 跳跃物理 update (基于力学步动，不使用 dt)
-                if (!ST.isGrounded) {
-                    ST.playerJump -= ST.vy; // 速度应用到高度偏移
-                    ST.vy += CFG.physics.gravity; // 重力加速度应用到速度
+                // 跳跃物理
+                // 跳跃物理 update
+                if (ST.isJumping) {
+                    ST.playerJump += ST.jumpVy * dt;
+                    ST.jumpVy -= CFG.physics.gravity * dt;
 
                     // 落地检测
                     if (ST.playerJump <= 0) {
                         ST.playerJump = 0;
-                        ST.vy = 0;
-                        ST.isGrounded = true;
+                        ST.isJumping = false;
                         // 落地特效
-                        SFX.hit();
+                        SFX.hit(); // 或者单独的 land 音效
                         spawnParticles(trackX(ST.trackIndex, H * CFG.physics.playerY), H * CFG.physics.playerY, '#fff', 5);
                         ST.landingScale = 0.6; // 触发挤压动画
                     }
@@ -1945,10 +1900,10 @@
 
             // v2.8.3: 跳跃 (物理驱动，支持原地跳和跑动跳)
             function jumpPlayer(isRunJump = false) {
-                if (!ST.isGrounded || !ST.running || ST.paused) return;
-                ST.isGrounded = false;
+                if (ST.isJumping || !ST.running || ST.paused) return;
+                ST.isJumping = true;
                 // 跑动中跳跃力度更大
-                ST.vy = -(isRunJump ? CFG.physics.jumpForce * 1.3 : CFG.physics.jumpForce);
+                ST.jumpVy = isRunJump ? CFG.physics.jumpForce * 1.3 : CFG.physics.jumpForce;
                 SFX.jump();
             }
 
@@ -2076,10 +2031,9 @@
             loadConfig();
             // v2.9.1: 同步 ST.lives（loadConfig 在 ST 初始化之后执行，需手动同步）
             ST.lives = CFG.rules.initLives;
-            // v4.0: loadConfig 可能注入了新的 CSV 数据，刷新列表
-            // v4.2: 任务总数等于 offlineData 总数（不去重）
-            pinyinList = CFG.dataSource.offlineData.map(d => d.pinyin);
-            wordList = CFG.dataSource.offlineData.map(d => d.word);
+            // v4.0: loadConfig 可能注入了新的 CSV 数据，刷新 pinyinList
+            pinyinList = [...new Set(CFG.dataSource.offlineData.map(d => d.pinyin))];
+            wordList = [...new Set(CFG.dataSource.offlineData.map(d => d.word))];
 
             document.getElementById('start-btn').onclick = () => {
                 const ss = document.getElementById('start-screen');

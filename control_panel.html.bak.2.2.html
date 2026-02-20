@@ -260,44 +260,6 @@
             border-color: var(--accent);
         }
 
-        /* ── Editable Preset Number ── */
-        .preset-num {
-            width: 56px;
-            padding: 4px 6px;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            border-radius: var(--radius-sm);
-            font-size: 12px;
-            font-weight: 600;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color var(--transition), background var(--transition), color var(--transition);
-            -moz-appearance: textfield;
-        }
-
-        .preset-num::-webkit-inner-spin-button,
-        .preset-num::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .preset-num:hover {
-            border-color: var(--accent);
-        }
-
-        .preset-num:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: var(--bg-input-focus);
-        }
-
-        .preset-num.active {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
         .preset-input {
             flex: 1;
             min-width: 60px;
@@ -721,31 +683,30 @@
                     <div class="sub-label">运动学参数</div>
                     <div class="field">
                         <div class="field-head">
-                            <label>跳跃冲力<span class="unit">（数值）</span></label>
+                            <label>角色滞空时间<span class="unit">（毫秒）</span></label>
                         </div>
                         <div class="preset-group">
-                            <input type="number" class="preset-num" data-target="physical_engine.physics.jumpForce"
-                                value="12" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="physical_engine.physics.jumpForce"
-                                value="15" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="physical_engine.physics.jumpForce"
-                                value="18" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <button class="preset-btn"
+                                onclick="setPreset('physical_engine.physics.airTime',750,this)">750</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('physical_engine.physics.airTime',900,this)">900</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('physical_engine.physics.airTime',1000,this)">1000</button>
+                            <input type="text" class="preset-input" id="physical_engine.physics.airTime" value="750">
                         </div>
                     </div>
                     <div class="field">
                         <div class="field-head">
-                            <label>重力加速度<span class="unit">（g）</span></label>
+                            <label>重力感 / 落地时间<span class="unit">（毫秒）</span></label>
                         </div>
                         <div class="preset-group">
-                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
-                                step="0.1" value="0.6" onclick="selectEditablePreset(this)"
-                                oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
-                                step="0.1" value="0.8" onclick="selectEditablePreset(this)"
-                                oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
-                                step="0.1" value="1.0" onclick="selectEditablePreset(this)"
-                                oninput="selectEditablePreset(this)">
+                            <button class="preset-btn"
+                                onclick="setPreset('physical_engine.physics.gravity',500,this)">500</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('physical_engine.physics.gravity',750,this)">750</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('physical_engine.physics.gravity',900,this)">900</button>
+                            <input type="text" class="preset-input" id="physical_engine.physics.gravity" value="500">
                         </div>
                     </div>
                 </div>
@@ -824,12 +785,13 @@
                             <label>通关时间<span class="unit">（秒）</span></label>
                         </div>
                         <div class="preset-group">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
-                                value="30" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
-                                value="40" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
-                                value="50" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.timeLimit',30,this)">30</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.timeLimit',40,this)">40</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.timeLimit',50,this)">50</button>
+                            <input type="text" class="preset-input" id="level_settings.goals.timeLimit" value="40">
                         </div>
                     </div>
                     <div class="field">
@@ -837,12 +799,13 @@
                             <label>累计撞击正确项<span class="unit">（个）</span></label>
                         </div>
                         <div class="preset-group">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
-                                value="6" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
-                                value="8" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
-                                value="10" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.targetCount',6,this)">6</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.targetCount',8,this)">8</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.targetCount',10,this)">10</button>
+                            <input type="text" class="preset-input" id="level_settings.goals.targetCount" value="8">
                         </div>
                     </div>
                     <div class="field">
@@ -850,12 +813,13 @@
                             <label>连续撞击正确项<span class="unit">（个）</span></label>
                         </div>
                         <div class="preset-group">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
-                                value="3" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
-                                value="4" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
-                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.comboTarget',3,this)">3</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.comboTarget',4,this)">4</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.goals.comboTarget',5,this)">5</button>
+                            <input type="text" class="preset-input" id="level_settings.goals.comboTarget" value="3">
                         </div>
                     </div>
                 </div>
@@ -867,12 +831,13 @@
                             <label>累计撞击错误项<span class="unit">（个）</span></label>
                         </div>
                         <div class="preset-group">
-                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
-                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
-                                value="6" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
-                                value="7" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.fail.totalWrong',5,this)">5</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.fail.totalWrong',6,this)">6</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.fail.totalWrong',7,this)">7</button>
+                            <input type="text" class="preset-input" id="level_settings.fail.totalWrong" value="5">
                         </div>
                     </div>
                     <div class="field">
@@ -880,12 +845,13 @@
                             <label>连续撞击错误项<span class="unit">（个）</span></label>
                         </div>
                         <div class="preset-group">
-                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
-                                value="3" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
-                                value="4" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
-                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
-                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.fail.comboWrong',3,this)">3</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.fail.comboWrong',4,this)">4</button>
+                            <button class="preset-btn"
+                                onclick="setPreset('level_settings.fail.comboWrong',5,this)">5</button>
+                            <input type="text" class="preset-input" id="level_settings.fail.comboWrong" value="3">
                         </div>
                     </div>
                     <div class="readonly-field">
@@ -1070,7 +1036,7 @@
                 trackWidth: 1.0,
                 obstacleScale: { near: 1.0, far: 0.15 },
                 itemScale: { near: 0.9, far: 0.15 },
-                physics: { jumpForce: 15, gravity: 0.8 }
+                physics: { airTime: 750, gravity: 500 }
             },
             unit_settings: {
                 unitName: '',
@@ -1092,9 +1058,6 @@
             character: {
                 nickname: '贝贝',
                 grades: JSON.parse(JSON.stringify(GRADE_DEFAULTS))
-            },
-            dataSource: {
-                offlineData: []
             }
         };
 
@@ -1146,43 +1109,6 @@
             // sync to CFG
             setByPath(CFG, path, value);
         }
-
-        // Editable preset number: click to select, edit value in-place
-        function selectEditablePreset(el) {
-            const path = el.dataset.target;
-            const val = parseFloat(el.value);
-            if (isNaN(val)) return;
-
-            // 1. highlight active in THIS group
-            const group = el.parentElement;
-            group.querySelectorAll('.preset-num').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-
-            // 2. update CFG object
-            setByPath(CFG, path, val);
-
-            // 3. (Optional) Sync other inputs if they exist (unlikely now)
-            const input = document.getElementById(path);
-            if (input) input.value = val;
-        }
-
-        // Sync editable preset highlight when value matches
-        function syncEditablePresetHighlight(path) {
-            const val = getByPath(CFG, path);
-            document.querySelectorAll(`.preset-num[data-target="${path}"]`).forEach(num => {
-                num.classList.toggle('active', parseFloat(num.value) == val);
-            });
-        }
-
-        // Bind change events to all editable preset numbers
-        document.querySelectorAll('.preset-num').forEach(num => {
-            num.addEventListener('change', () => {
-                // When user edits the value and presses enter or blurs, just update the value
-                // but do NOT auto-select — user needs to click to select
-            });
-            // Prevent click default from selecting text inside, keep focus for editing
-            num.addEventListener('focus', (e) => e.target.select());
-        });
 
         function syncPresetHighlight(inputEl) {
             const group = inputEl.parentElement;
@@ -1294,15 +1220,11 @@
                 } else {
                     el.value = val;
                 }
+                // sync preset highlight
+                if (el.classList.contains('preset-input')) {
+                    syncPresetHighlight(el);
+                }
             });
-
-            // sync editable preset nums
-            const presetPaths = [
-                'physical_engine.physics.jumpForce', 'physical_engine.physics.gravity',
-                'level_settings.goals.timeLimit', 'level_settings.goals.targetCount', 'level_settings.goals.comboTarget',
-                'level_settings.fail.totalWrong', 'level_settings.fail.comboWrong'
-            ];
-            presetPaths.forEach(syncEditablePresetHighlight);
 
             // mode tabs
             document.querySelectorAll('.mode-tab').forEach(t => {
@@ -1317,7 +1239,6 @@
         }
 
         function uiToCFG() {
-            // 1. Handle standard inputs (with IDs)
             getBindableInputs().forEach(el => {
                 const path = el.id;
                 let val;
@@ -1328,19 +1249,11 @@
                 } else if (el.tagName === 'SELECT') {
                     val = isNaN(el.value) ? el.value : parseFloat(el.value);
                 } else {
-                    val = el.value;
+                    // text - try number first
+                    const num = parseFloat(el.value);
+                    val = (!isNaN(num) && el.closest('.preset-group')) ? num : el.value;
                 }
                 setByPath(CFG, path, val);
-            });
-
-            // 2. Handle group presets (Winning conditions, Kinematics etc)
-            document.querySelectorAll('.preset-group').forEach(group => {
-                const activeNum = group.querySelector('.preset-num.active');
-                if (activeNum) {
-                    const path = activeNum.dataset.target;
-                    const val = parseFloat(activeNum.value);
-                    if (!isNaN(val)) setByPath(CFG, path, val);
-                }
             });
         }
 
@@ -1416,77 +1329,51 @@
         // ══════════════════════════════════════════════
         //  Download / Share
         // ══════════════════════════════════════════════
-        // ══════════════════════════════════════════════
-        //  Download / Share (Standalone Game Export) - v4.6
-        // ══════════════════════════════════════════════
-        async function downloadShare() {
+        function downloadShare() {
             uiToCFG();
-
-            // 1. 核心需求：全量导出数据 (强制将 CSV 解析结果固化到 CFG)
-            if (CFG.unit_settings && Array.isArray(CFG.unit_settings.csvData)) {
-                CFG.dataSource = CFG.dataSource || {};
-                CFG.dataSource.offlineData = CFG.unit_settings.csvData.map(d => ({
-                    word: d.word || '',
-                    pinyin: d.pinyin || ''
-                }));
-                console.log('✅ 已全量固化离线数据:', CFG.dataSource.offlineData.length, '条');
-            }
-
-            // 2. 文件名安全过滤 (Sanitize filename)
-            const rawName = CFG.unit_settings.unitName || '单元信息';
-            const safeName = rawName.replace(/[\\/:\*\?"<>\|]/g, '_').trim(); // 基础过滤
-            const fileName = `${safeName}.html`;
+            const unitName = CFG.unit_settings.unitName || '配置';
             const cfgJson = JSON.stringify(CFG, null, 2);
 
-            try {
-                // 获取游戏模板
-                let template = '';
-                try {
-                    const resp = await fetch('index.html');
-                    if (resp.ok) {
-                        template = await resp.text();
-                    } else { throw new Error('Fetch failed'); }
-                } catch (e) {
-                    alert('❌ 下载失败：无法获取 index.html。请在本地服务器环境运行本页面。');
-                    return;
-                }
+            const htmlContent = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordRunMaster 配置 — ${unitName}</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding:40px; background:#F4F6F9; color:#1A2332; max-width:800px; margin:0 auto; }
+h1 { font-size:22px; margin-bottom:8px; }
+.meta { color:#6B7B8D; font-size:13px; margin-bottom:24px; }
+pre { background:#fff; border:1px solid #E0E4EA; border-radius:10px; padding:20px; font-size:13px; overflow-x:auto; line-height:1.6; }
+.tip { margin-top:20px; padding:12px 16px; background:#EBF4FD; border-radius:8px; font-size:12px; color:#4A9EEB; }
+</style>
+</head>
+<body>
+<h1>📋 ${unitName}</h1>
+<p class="meta">导出时间：${new Date().toLocaleString('zh-CN')}</p>
+<pre id="cfg-data">${cfgJson.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+<div class="tip">💡 将此文件与游戏 index.html 放在同一目录，或将 pre 标签内的 JSON 复制到 localStorage 键 <strong>WRM_UserConfig</strong> 中即可生效。</div>
+<script>
+// Auto-load config into localStorage when opened
+try {
+    const cfg = ${cfgJson};
+    localStorage.setItem('WRM_UserConfig', JSON.stringify(cfg));
+    document.querySelector('.tip').innerHTML += '<br>✅ 配置已自动写入当前浏览器的本地存储。';
+} catch(e) { console.warn(e); }
+<\/script>
+</body>
+</html>`;
 
-                // 3. 即时自愈逻辑注入 (window.OFFLINE_CONFIG)
-                // 在 head 顶部注入，确保比任何引擎逻辑都先运行
-                const injection = `
-    <!-- Standalone Force Offline Config (v4.6) -->
-    <script>
-        window.OFFLINE_CONFIG = ${cfgJson};
-        // 强制初始化自愈 (解决 File 协议 localStorage 受限问题)
-        try {
-            localStorage.setItem('WRM_UserConfig', JSON.stringify(window.OFFLINE_CONFIG));
-        } catch(e) { console.warn("LocalStorage access denied in File protocol mode."); }
-    <\/script>
-                `;
-
-                // 注入到 </head> 之前
-                let finalHtml = template.replace('</head>', injection + '\n</head>');
-
-                // 4. (已移除双重保障：保留 index.html 原生 WRM_CONFIG，由 loadConfig 进行安全合并)
-                // 这修复了导出后因缺少基础字段 (如 rules, physics) 导致 ST 对象初始化崩溃的问题
-
-                // 同步标题
-                finalHtml = finalHtml.replace(/<title>.*?<\/title>/, `<title>${safeName} - 字跑大师</title>`);
-
-                // 5. 触发物理下载
-                const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = fileName;
-                document.body.appendChild(a); a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                showToast(`📥 ${fileName} 导出成功`);
-            } catch (err) {
-                console.error(err);
-                showToast('❌ 导出失败，请检查控制台');
-            }
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = unitName + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('📥 已下载 ' + unitName + '.html');
         }
 
         // ══════════════════════════════════════════════

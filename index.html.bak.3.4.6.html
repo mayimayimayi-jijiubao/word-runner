@@ -469,9 +469,6 @@
         ; (function () {
             "use strict";
             const CFG = window.WRM_CONFIG;
-            if (window.OFFLINE_CONFIG) {
-                console.log('🚀 强制启动离线配置模式 (OFFLINE_CONFIG)');
-            }
             const W = 450, H = 800;
             const canvas = document.getElementById('gc');
             const ctx = canvas.getContext('2d');
@@ -601,22 +598,9 @@
             // ===== localStorage 配置管理 =====
             function loadConfig() {
                 try {
-                    // 优先读取内嵌配置（独立导出包专用，解决 File 协议限制）
-                    let config = null;
-                    if (window.OFFLINE_CONFIG) {
-                        config = window.OFFLINE_CONFIG;
-                        console.log('📦 使用内嵌配置 (OFFLINE_CONFIG) 启动');
-                    } else if (window.FORCE_OFFLINE_CONFIG) {
-                        config = window.FORCE_OFFLINE_CONFIG;
-                        console.log('📦 使用内嵌配置 (FORCE_OFFLINE_CONFIG) 启动');
-                    } else if (window.EMBEDDED_CONFIG) {
-                        config = window.EMBEDDED_CONFIG;
-                        console.log('📦 使用内嵌配置 (EMBEDDED_CONFIG) 启动');
-                    } else {
-                        const saved = localStorage.getItem('WRM_UserConfig');
-                        if (!saved) return;
-                        config = JSON.parse(saved);
-                    }
+                    const saved = localStorage.getItem('WRM_UserConfig');
+                    if (!saved) return;
+                    const config = JSON.parse(saved);
 
                     // ── 兼容旧格式（直接有 rules/physics/difficulty/ui 字段）──
                     if (config.rules) Object.assign(CFG.rules, config.rules);
@@ -731,19 +715,6 @@
 
                 } catch (e) {
                     console.warn('Failed to load config:', e);
-                }
-                syncUIText();
-            }
-
-            // v4.3: 同步 UI 文字 (标题/首屏)
-            function syncUIText() {
-                if (CFG.metadata && CFG.metadata.unitTitle) {
-                    const title = CFG.metadata.unitTitle;
-                    document.title = title + ' - 字跑大师';
-                    // 保持启动界面标题为“字跑大师”固定不变
-                    // const h1 = document.querySelector('#start-screen h1');
-                    // if (h1) h1.textContent = title; 
-                    console.log('📝 已同步文档 Title:', title);
                 }
             }
             function saveConfig() {

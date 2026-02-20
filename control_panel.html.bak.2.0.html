@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordRunMaster — 配置中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── Design Tokens ── */
+        :root {
+            --bg-body: #080E1A;
+            --bg-panel: #0F1B2D;
+            --bg-section: #152238;
+            --bg-input: #1A2A44;
+            --bg-input-focus: #1F3354;
+            --border: #243B5C;
+            --border-active: #3B6EA5;
+            --accent: #4A9EEB;
+            --accent-glow: rgba(74, 158, 235, 0.25);
+            --text-primary: #E2E8F0;
+            --text-secondary: #8899AA;
+            --text-label: #A0B0C4;
+            --text-value: #4A9EEB;
+            --success: #34D399;
+            --success-bg: rgba(52, 211, 153, 0.12);
+            --danger: #F87171;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+            --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            --transition: 180ms ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 24px 16px;
+        }
+
+        /* ── Layout ── */
+        .shell {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 0 4px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .header .version {
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--bg-section);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Section Card ── */
+        .section {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Subsection ── */
+        .subsection {
+            margin-bottom: 16px;
+        }
+
+        .subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .sub-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 10px;
+            opacity: 0.85;
+        }
+
+        /* ── Field Row ── */
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 12px;
+            background: var(--bg-section);
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            transition: border-color var(--transition);
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field:hover {
+            border-color: var(--border);
+        }
+
+        .field-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .field-head label {
+            font-size: 12px;
+            color: var(--text-label);
+            font-weight: 500;
+        }
+
+        .field-head .val {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-value);
+            font-variant-numeric: tabular-nums;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* ── Range Slider ── */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--bg-input);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid var(--bg-panel);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+            cursor: pointer;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 5px var(--accent-glow);
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid var(--bg-panel);
+            cursor: pointer;
+        }
+
+        /* ── Number Input ── */
+        input[type=number] {
+            width: 100%;
+            padding: 7px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            font-variant-numeric: tabular-nums;
+            outline: none;
+            transition: border-color var(--transition), background var(--transition);
+        }
+
+        input[type=number]:focus {
+            border-color: var(--border-active);
+            background: var(--bg-input-focus);
+        }
+
+        /* Hide spinners for cleaner look */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        /* ── Select ── */
+        select {
+            width: 100%;
+            padding: 7px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238899AA' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+            transition: border-color var(--transition);
+        }
+
+        select:focus {
+            border-color: var(--border-active);
+        }
+
+        /* ── Toggle Switch ── */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: var(--bg-section);
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            border: 1px solid transparent;
+            transition: border-color var(--transition);
+        }
+
+        .toggle-row:hover {
+            border-color: var(--border);
+        }
+
+        .toggle-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .toggle-row label {
+            font-size: 12px;
+            color: var(--text-label);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch .slider {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-input);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: background var(--transition), border-color var(--transition);
+        }
+
+        .switch .slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 2px;
+            top: 2px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            transition: transform var(--transition), background var(--transition);
+        }
+
+        .switch input:checked+.slider {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .switch input:checked+.slider::before {
+            transform: translateX(18px);
+            background: #fff;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-save {
+            flex: 1;
+            padding: 12px 24px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+        }
+
+        .btn-save:hover {
+            background: #3B8DD4;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .btn-save:active {
+            transform: scale(0.98);
+        }
+
+        .btn-reset {
+            padding: 12px 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: color var(--transition), border-color var(--transition);
+        }
+
+        .btn-reset:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-section);
+            border: 1px solid var(--border);
+            color: var(--success);
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transition: transform 300ms ease, opacity 300ms ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>配置中心</h1>
+                <span class="version">v2.0</span>
+            </div>
+        </div>
+
+        <!-- Two-column grid -->
+        <div class="grid">
+            <!-- ═══════ LEFT COLUMN ═══════ -->
+            <div class="column-left">
+                <!-- Physical Engine -->
+                <div class="section" style="margin-bottom:20px;">
+                    <div class="section-title">物理引擎</div>
+
+                    <div class="subsection">
+                        <div class="field">
+                            <div class="field-head">
+                                <label>跑道宽度基准</label>
+                            </div>
+                            <input type="number" id="physical_engine.trackWidth" step="0.1" value="1.0">
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="sub-label">障碍物缩放</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>障碍物近端大小</label>
+                                <span class="val" data-for="physical_engine.obstacleScale.near">1.0</span>
+                            </div>
+                            <input type="range" id="physical_engine.obstacleScale.near" min="0.5" max="2.0" step="0.05"
+                                value="1.0">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>障碍物远端大小</label>
+                                <span class="val" data-for="physical_engine.obstacleScale.far">0.15</span>
+                            </div>
+                            <input type="range" id="physical_engine.obstacleScale.far" min="0.05" max="0.5" step="0.01"
+                                value="0.15">
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="sub-label">任务项缩放</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>任务项近端大小</label>
+                                <span class="val" data-for="physical_engine.itemScale.near">0.9</span>
+                            </div>
+                            <input type="range" id="physical_engine.itemScale.near" min="0.5" max="2.0" step="0.05"
+                                value="0.9">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>任务项远端大小</label>
+                                <span class="val" data-for="physical_engine.itemScale.far">0.15</span>
+                            </div>
+                            <input type="range" id="physical_engine.itemScale.far" min="0.05" max="0.5" step="0.01"
+                                value="0.15">
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="sub-label">运动学参数</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>角色滞空时间 (ms)</label>
+                            </div>
+                            <input type="number" id="physical_engine.physics.airTime" step="50" value="750">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>跳跃力度</label>
+                            </div>
+                            <select id="physical_engine.physics.jumpPower">
+                                <option value="900">900</option>
+                                <option value="1000">1000</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>重力感 / 落地时间</label>
+                            </div>
+                            <input type="number" id="physical_engine.physics.gravity" step="50" value="500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Educational Logic -->
+                <div class="section">
+                    <div class="section-title">教学逻辑</div>
+
+                    <div class="toggle-row">
+                        <label>规则1：同音字不重复出现</label>
+                        <div class="switch">
+                            <input type="checkbox" id="educational_logic.rules.homophoneControl" checked>
+                            <span class="slider"></span>
+                        </div>
+                    </div>
+                    <div class="toggle-row">
+                        <label>规则2：仅读 pinyin 字段读音</label>
+                        <div class="switch">
+                            <input type="checkbox" id="educational_logic.rules.pinyinStrict" checked>
+                            <span class="slider"></span>
+                        </div>
+                    </div>
+                    <div class="toggle-row">
+                        <label>排序规则：干扰与正确交叉排列</label>
+                        <div class="switch">
+                            <input type="checkbox" id="educational_logic.rules.orderLogic" checked>
+                            <span class="slider"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ RIGHT COLUMN ═══════ -->
+            <div class="column-right">
+                <!-- Difficulty & Level -->
+                <div class="section" style="margin-bottom:20px;">
+                    <div class="section-title">难度与关卡</div>
+
+                    <div class="subsection">
+                        <div class="sub-label">生成密度</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>正确项密度概率</label>
+                                <span class="val" data-for="difficulty_and_level.spawn_rates.targetDensity">0.6</span>
+                            </div>
+                            <input type="range" id="difficulty_and_level.spawn_rates.targetDensity" min="0.1" max="1.0"
+                                step="0.05" value="0.6">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>干扰项密度概率</label>
+                                <span class="val"
+                                    data-for="difficulty_and_level.spawn_rates.distractorDensity">0.3</span>
+                            </div>
+                            <input type="range" id="difficulty_and_level.spawn_rates.distractorDensity" min="0.1"
+                                max="1.0" step="0.05" value="0.3">
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="sub-label">通关目标</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>通关需撞击正确项数</label>
+                            </div>
+                            <input type="number" id="difficulty_and_level.goals.targetCount" step="1" min="1"
+                                value="10">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>关卡倒计时 (s)</label>
+                            </div>
+                            <input type="number" id="difficulty_and_level.goals.timeLimit" step="5" min="10" value="40">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scoring System -->
+                <div class="section">
+                    <div class="section-title">计分系统</div>
+
+                    <div class="subsection">
+                        <div class="sub-label">基础得分</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>撞击正确项得分</label>
+                            </div>
+                            <input type="number" id="scoring_system.base_points.hitTarget" step="1" value="10">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>撞击干扰项扣分</label>
+                            </div>
+                            <input type="number" id="scoring_system.base_points.hitDistractor" step="1" value="-3">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>撞击障碍物扣分</label>
+                            </div>
+                            <input type="number" id="scoring_system.base_points.hitObstacle" step="1" value="-5">
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="sub-label">连击奖励</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>2连击加分</label>
+                            </div>
+                            <input type="number" id="scoring_system.combo_rewards.combo2" step="5" value="20">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>5连击加分</label>
+                            </div>
+                            <input type="number" id="scoring_system.combo_rewards.combo5" step="5" value="50">
+                        </div>
+                        <p style="font-size:11px; color:var(--text-secondary); padding:4px 12px; margin-bottom:8px;">
+                            ※ 连续连击取最后一次最高奖励
+                        </p>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="sub-label">生命值</div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>初始生命值</label>
+                            </div>
+                            <input type="number" id="scoring_system.lives.initLives" step="1" min="1" value="3">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>撞击干扰项扣生命</label>
+                            </div>
+                            <input type="number" id="scoring_system.lives.distractorDamage" step="0.5" min="0"
+                                value="0.5">
+                        </div>
+                        <div class="field">
+                            <div class="field-head">
+                                <label>撞击障碍物扣生命</label>
+                            </div>
+                            <input type="number" id="scoring_system.lives.obstacleDamage" step="0.5" min="0"
+                                value="1.0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <button class="btn-save" id="btn-save">保存配置</button>
+            <button class="btn-reset" id="btn-reset">恢复默认</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">✓ 配置已保存至本地存储</div>
+
+    <script>
+        // ══════════════════════════════════════════════
+        //  CFG 默认值（严格遵循 JSON 协议）
+        // ══════════════════════════════════════════════
+        const DEFAULTS = {
+            physical_engine: {
+                trackWidth: 1.0,
+                obstacleScale: { near: 1.0, far: 0.15 },
+                itemScale: { near: 0.9, far: 0.15 },
+                physics: { airTime: 750, jumpPower: 900, gravity: 500 }
+            },
+            educational_logic: {
+                rules: { homophoneControl: true, pinyinStrict: true, orderLogic: true }
+            },
+            difficulty_and_level: {
+                spawn_rates: { targetDensity: 0.6, distractorDensity: 0.3 },
+                goals: { targetCount: 10, timeLimit: 40 }
+            },
+            scoring_system: {
+                base_points: { hitTarget: 10, hitDistractor: -3, hitObstacle: -5 },
+                combo_rewards: { combo2: 20, combo5: 50 },
+                lives: { initLives: 3, distractorDamage: 0.5, obstacleDamage: 1.0 }
+            }
+        };
+
+        // Deep clone as current CFG
+        const CFG = JSON.parse(JSON.stringify(DEFAULTS));
+
+        // ══════════════════════════════════════════════
+        //  Utility: dot-path accessor
+        // ══════════════════════════════════════════════
+        function getByPath(obj, path) {
+            return path.split('.').reduce((o, k) => o && o[k], obj);
+        }
+        function setByPath(obj, path, val) {
+            const keys = path.split('.');
+            let cur = obj;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!(keys[i] in cur)) cur[keys[i]] = {};
+                cur = cur[keys[i]];
+            }
+            cur[keys[keys.length - 1]] = val;
+        }
+
+        // ══════════════════════════════════════════════
+        //  Bind all controls by id (auto-discover)
+        // ══════════════════════════════════════════════
+        const allInputs = document.querySelectorAll('input[id], select[id]');
+
+        function cfgToUI() {
+            allInputs.forEach(el => {
+                const path = el.id;
+                const val = getByPath(CFG, path);
+                if (val === undefined) return;
+
+                if (el.type === 'checkbox') {
+                    el.checked = !!val;
+                } else if (el.type === 'range') {
+                    el.value = val;
+                    const span = document.querySelector(`.val[data-for="${path}"]`);
+                    if (span) span.textContent = val;
+                } else {
+                    el.value = val;
+                }
+            });
+        }
+
+        function uiToCFG() {
+            allInputs.forEach(el => {
+                const path = el.id;
+                let val;
+                if (el.type === 'checkbox') {
+                    val = el.checked;
+                } else if (el.type === 'range' || el.type === 'number') {
+                    val = parseFloat(el.value);
+                } else if (el.tagName === 'SELECT') {
+                    // If option value is numeric, store as number
+                    val = isNaN(el.value) ? el.value : parseFloat(el.value);
+                } else {
+                    val = el.value;
+                }
+                setByPath(CFG, path, val);
+            });
+        }
+
+        // ══════════════════════════════════════════════
+        //  Real-time range <-> span binding
+        // ══════════════════════════════════════════════
+        document.querySelectorAll('input[type=range]').forEach(slider => {
+            slider.addEventListener('input', () => {
+                const span = document.querySelector(`.val[data-for="${slider.id}"]`);
+                if (span) span.textContent = slider.value;
+                // Also sync to CFG immediately
+                setByPath(CFG, slider.id, parseFloat(slider.value));
+            });
+        });
+
+        // Real-time sync for other inputs
+        document.querySelectorAll('input[type=number]').forEach(inp => {
+            inp.addEventListener('input', () => {
+                setByPath(CFG, inp.id, parseFloat(inp.value));
+            });
+        });
+        document.querySelectorAll('input[type=checkbox]').forEach(chk => {
+            chk.addEventListener('change', () => {
+                setByPath(CFG, chk.id, chk.checked);
+            });
+        });
+        document.querySelectorAll('select').forEach(sel => {
+            sel.addEventListener('change', () => {
+                const v = isNaN(sel.value) ? sel.value : parseFloat(sel.value);
+                setByPath(CFG, sel.id, v);
+            });
+        });
+
+        // ══════════════════════════════════════════════
+        //  Save / Load / Reset
+        // ══════════════════════════════════════════════
+        function save() {
+            uiToCFG();
+            localStorage.setItem('WRM_UserConfig', JSON.stringify(CFG));
+            showToast();
+        }
+
+        function load() {
+            try {
+                const raw = localStorage.getItem('WRM_UserConfig');
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                deepMerge(CFG, saved);
+            } catch (e) {
+                console.warn('加载配置失败:', e);
+            }
+        }
+
+        function deepMerge(target, source) {
+            for (const key of Object.keys(source)) {
+                if (
+                    source[key] && typeof source[key] === 'object' &&
+                    !Array.isArray(source[key]) &&
+                    target[key] && typeof target[key] === 'object'
+                ) {
+                    deepMerge(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            }
+        }
+
+        function resetToDefaults() {
+            deepMerge(CFG, JSON.parse(JSON.stringify(DEFAULTS)));
+            cfgToUI();
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        // ══════════════════════════════════════════════
+        //  Events
+        // ══════════════════════════════════════════════
+        document.getElementById('btn-save').addEventListener('click', save);
+        document.getElementById('btn-reset').addEventListener('click', resetToDefaults);
+
+        // ══════════════════════════════════════════════
+        //  Init
+        // ══════════════════════════════════════════════
+        load();
+        cfgToUI();
+    </script>
+</body>
+
+</html>
