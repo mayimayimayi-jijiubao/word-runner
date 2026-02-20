@@ -135,9 +135,9 @@
             /* Middle of runway */
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 48px;
+            font-size: 24px;
             color: #fdcb6e;
-            text-shadow: 3px 3px 0 #d63031;
+            text-shadow: 2px 2px 0 #d63031;
             font-weight: bold;
             opacity: 0;
             transition: opacity .1s, transform .1s;
@@ -149,6 +149,55 @@
         #hud .combo.fade-out {
             opacity: 0 !important;
             transform: translate(-50%, -80%);
+        }
+
+        /* Phase Transition Popup */
+        #phase-transition {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(45, 52, 54, 0.95);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            backdrop-filter: blur(5px);
+        }
+
+        #phase-transition h2 {
+            font-size: 36px;
+            color: #00ffcc;
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+            margin-bottom: 16px;
+        }
+
+        #phase-transition .info {
+            font-size: 20px;
+            color: #dfe6e9;
+            line-height: 2;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        #phase-transition button {
+            padding: 12px 40px;
+            font-size: 24px;
+            background-color: #ffeaa7;
+            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
+            border: 1px solid #e0cba0;
+            border-radius: 2px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2d3436;
+            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
+            transform: rotate(-1deg);
+            transition: transform 0.2s;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        #phase-transition button:hover {
+            transform: scale(1.05) rotate(0deg);
         }
 
         #start-screen {
@@ -326,6 +375,12 @@
         <div class="info" id="lc-info"></div><button id="lc-next">下一关</button>
     </div>
 
+    <div id="phase-transition">
+        <h2>🎉 音找字关卡已完成！</h2>
+        <div class="info">接下来进入“字找音”关卡<br>任务区将显示汉字，跑道上出现拼音</div>
+        <button id="phase-next-btn">进入字找音关卡</button>
+    </div>
+
     <script>
         // ========== 配置块（由 workbench.html 注入）==========
         window.WRM_CONFIG = {
@@ -347,18 +402,27 @@
                 correctStart: 0.70, correctEnd: 0.15
             },
             scoring: {
-                correctBase: 100, comboMax: 5,
-                dodgeObstacle: 20, levelClear: 500,
-                timeBonus: 10, streakBonus: 200
+                correctBase: 10, comboMax: 5,
+                hitDistractor: -3, hitObstacle: -5,
+                comboRewards: { 2: 20, 3: 30, 4: 40, 5: 50 }
             },
-            levels: [
-                { rank: "识字新兵", threshold: 0 },
-                { rank: "拼音学徒", threshold: 1000 },
-                { rank: "汉字猎手", threshold: 3000 },
-                { rank: "文字侠客", threshold: 6000 },
-                { rank: "字跑大师", threshold: 10000 },
-                { rank: "传奇字神", threshold: 20000 }
-            ],
+            character: {
+                nickname: "贝贝",
+                grades: [
+                    { name: "童生", score: 0 },
+                    { name: "秀才", score: 100 },
+                    { name: "贡生", score: 200 },
+                    { name: "举人", score: 300 },
+                    { name: "解元", score: 400 },
+                    { name: "贡士", score: 500 },
+                    { name: "会元", score: 600 },
+                    { name: "进士", score: 700 },
+                    { name: "探花", score: 800 },
+                    { name: "榜眼", score: 900 },
+                    { name: "状元", score: 1000 }
+                ]
+            },
+            // levels 数组已移除，现在通过 CFG.character.grades 动态获取
             physics: {
                 tracksX: [0.166666, 0.5, 0.833333], // v2.9.2: 真正三等分跑道（1/6, 1/2, 5/6）
                 playerY: 0.90, // 下移至 90%
@@ -483,18 +547,38 @@
                 failedLevelIndex: -1, // v2.8: 失败时的关卡索引
                 ringCompleteAnim: 0, // v2.8: 外环完成动画进度
                 appearedCorrectWords: new Set(), // v2.5: 跟踪已出现的同音字
+                gamePhase: 'soundToWord', // v4.1: 游戏阶段 soundToWord | wordToSound
+                currentTaskDisplay: '', // v4.1: 任务区显示内容
                 dt: 0, lastTime: 0, frameCount: 0
             };
 
             // ===== 关卡数据 =====
-            const allData = CFG.dataSource.offlineData;
-            let pinyinList = [...new Set(allData.map(d => d.pinyin))];
+            // v4.0: 用函数取代const，确保loadConfig后始终读取最新数据
+            function getAllData() { return CFG.dataSource.offlineData; }
+            let pinyinList = getAllData().map(d => d.pinyin);
+            let wordList = getAllData().map(d => d.word); // v4.1: 字找音用
+
+            // ===== 数组洗牌 =====
+            function shuffleArray(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
 
             // ===== 等级计算 =====
             function getLevel(score) {
-                let lv = CFG.levels[0];
-                for (const l of CFG.levels) { if (score >= l.threshold) lv = l; }
-                return lv;
+                // 优先使用配置中的等级规则
+                const grades = (CFG.character && CFG.character.grades) || [
+                    { name: "识字新兵", score: 0 },
+                    { name: "大师", score: 10000 }
+                ];
+                let lv = grades[0];
+                for (const l of grades) {
+                    if (score >= l.score) lv = l;
+                }
+                return { rank: lv.name || lv.rank };
             }
 
             // ===== 难度曲线 =====
@@ -517,10 +601,118 @@
                     const saved = localStorage.getItem('WRM_UserConfig');
                     if (!saved) return;
                     const config = JSON.parse(saved);
-                    Object.assign(CFG.ui, config.ui || {});
-                    Object.assign(CFG.difficulty, config.difficulty || {});
-                    Object.assign(CFG.rules, config.rules || {});
-                    Object.assign(CFG.physics, config.physics || {});
+
+                    // ── 兼容旧格式（直接有 rules/physics/difficulty/ui 字段）──
+                    if (config.rules) Object.assign(CFG.rules, config.rules);
+                    if (config.physics) Object.assign(CFG.physics, config.physics);
+                    if (config.difficulty) Object.assign(CFG.difficulty, config.difficulty);
+                    if (config.ui) Object.assign(CFG.ui, config.ui);
+
+                    // ── 配置中心 v2.0 新格式映射 ──
+                    // 物理引擎
+                    const pe = config.physical_engine;
+                    if (pe) {
+                        if (pe.obstacleScale) {
+                            if (pe.obstacleScale.near !== undefined) CFG.physics.objScaleEnd = pe.obstacleScale.near;
+                            if (pe.obstacleScale.far !== undefined) CFG.physics.objScaleStart = pe.obstacleScale.far;
+                        }
+                        if (pe.itemScale) {
+                            // itemScale 与 objScale 共享（游戏中统一处理）
+                            if (pe.itemScale.far !== undefined) CFG.physics.objScaleStart = pe.itemScale.far;
+                            if (pe.itemScale.near !== undefined) CFG.physics.objScaleEnd = pe.itemScale.near;
+                        }
+                        if (pe.physics) {
+                            if (pe.physics.airTime !== undefined) CFG.physics.jumpForce = pe.physics.airTime;
+                            if (pe.physics.gravity !== undefined) CFG.physics.gravity = pe.physics.gravity;
+                        }
+                    }
+
+                    // 小关通关设置
+                    const ls = config.level_settings;
+                    if (ls) {
+                        if (ls.goals) {
+                            if (ls.goals.timeLimit !== undefined) CFG.rules.levelTime = ls.goals.timeLimit;
+                            if (ls.goals.targetCount !== undefined) CFG.rules.winCorrectTotal = ls.goals.targetCount;
+                            if (ls.goals.comboTarget !== undefined) CFG.rules.winCorrectStreak = ls.goals.comboTarget;
+                        }
+                        if (ls.fail) {
+                            if (ls.fail.comboWrong !== undefined) CFG.rules.failWrongStreak = ls.fail.comboWrong;
+                            // totalWrong 暂由生命值系统兜底
+                        }
+                    }
+
+                    // 难度设置
+                    const diff = config.difficulty_and_level || config.difficulty;
+                    if (config.difficulty && config.difficulty.spawn) {
+                        const sp = config.difficulty.spawn;
+                        if (sp.targetDensity !== undefined) CFG.difficulty.correctStart = sp.targetDensity;
+                        if (sp.distractorDensity !== undefined) CFG.difficulty.wrongStart = sp.distractorDensity;
+                        if (sp.obstacleDensity !== undefined) CFG.difficulty.obstacleStart = sp.obstacleDensity;
+                    }
+
+                    // 计分系统
+                    const sc = config.scoring;
+                    if (sc) {
+                        if (sc.base) {
+                            if (sc.base.hitTarget !== undefined) CFG.scoring.correctBase = sc.base.hitTarget;
+                            if (sc.base.hitDistractor !== undefined) CFG.scoring.hitDistractor = sc.base.hitDistractor;
+                            if (sc.base.hitObstacle !== undefined) CFG.scoring.hitObstacle = sc.base.hitObstacle;
+                        }
+                        if (sc.combo) {
+                            // 连击最大值取最高定义的连击数
+                            CFG.scoring.comboMax = 5;
+                            // 存储连击奖励表供游戏使用
+                            CFG.scoring.comboRewards = {};
+                            if (sc.combo.combo2 !== undefined) CFG.scoring.comboRewards[2] = sc.combo.combo2;
+                            if (sc.combo.combo3 !== undefined) CFG.scoring.comboRewards[3] = sc.combo.combo3;
+                            if (sc.combo.combo4 !== undefined) CFG.scoring.comboRewards[4] = sc.combo.combo4;
+                            if (sc.combo.combo5 !== undefined) CFG.scoring.comboRewards[5] = sc.combo.combo5;
+                        }
+                        if (sc.lives) {
+                            if (sc.lives.initLives !== undefined) CFG.rules.initLives = sc.lives.initLives;
+                            if (sc.lives.distractorDamage !== undefined) CFG.rules.wrongDamage = sc.lives.distractorDamage;
+                            if (sc.lives.obstacleDamage !== undefined) CFG.rules.obstacleDamage = sc.lives.obstacleDamage;
+                        }
+                    }
+
+                    // 角色设置
+                    const ch = config.character;
+                    if (ch) {
+                        if (ch.nickname) CFG.metadata.playerName = ch.nickname;
+                        if (Array.isArray(ch.grades) && ch.grades.length > 0) {
+                            CFG.levels = ch.grades.map(g => ({
+                                rank: g.name,
+                                threshold: g.score
+                            }));
+                        }
+                    }
+
+                    // 单元关卡设置（模式/CSV数据）
+                    const us = config.unit_settings;
+                    if (us) {
+                        if (us.unitName) CFG.metadata.unitTitle = us.unitName;
+                        if (us.mode === 'soundToWord') {
+                            CFG.levelDesign = CFG.levelDesign || {};
+                            CFG.levelDesign.levelName = '音找字';
+                            CFG.levelDesign.taskSource = 'pinyin';
+                            CFG.levelDesign.correctSource = 'word';
+                            CFG.levelDesign.wrongSource = 'word_exclude_homophone';
+                        } else if (us.mode === 'wordToSound') {
+                            CFG.levelDesign = CFG.levelDesign || {};
+                            CFG.levelDesign.levelName = '字找音';
+                            CFG.levelDesign.taskSource = 'word';
+                            CFG.levelDesign.correctSource = 'pinyin';
+                            CFG.levelDesign.wrongSource = 'pinyin';
+                        }
+                        // CSV 数据注入
+                        if (Array.isArray(us.csvData) && us.csvData.length > 0) {
+                            CFG.dataSource.offlineData = us.csvData.map(row => ({
+                                word: row.word || '',
+                                pinyin: row.pinyin || ''
+                            }));
+                        }
+                    }
+
                 } catch (e) {
                     console.warn('Failed to load config:', e);
                 }
@@ -758,6 +950,15 @@
                         ctx.fillRect(cx - w / 2, rl.y, w, h);
                     }
                 });
+
+                // 5. 单元信息显示（跑道最下方）
+                ctx.save();
+                ctx.font = '12px "Microsoft YaHei"';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillStyle = 'rgba(180, 170, 155, 0.7)';
+                ctx.fillText(CFG.metadata.unitTitle || '', W / 2, H - 8);
+                ctx.restore();
             }
             function updateRoadLines() {
                 const diff = getDifficulty();
@@ -1040,18 +1241,35 @@
                 ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.arc(0, 0, innerR, 0, Math.PI * 2); ctx.stroke();
 
-                // 3. 外环装饰圆点（铆钉）
+                // 3. 外环呼吸灯（小关状态）— 数量 = 累计正确数
                 ctx.shadowColor = 'transparent';
                 const dotR = ringR * 0.96;
-                const dotCount = 16;
-                ctx.fillStyle = '#d7ccc8';
-                for (let i = 0; i < dotCount; i++) {
-                    const a = (Math.PI * 2 * i) / dotCount;
+                const maxDots = CFG.rules.winCorrectTotal;
+                const breathAlpha = 0.5 + 0.5 * Math.sin(ST.frameCount * 0.06); // 呼吸节奏
+                for (let i = 0; i < maxDots; i++) {
+                    const a = (Math.PI * 2 * i) / maxDots;
                     const dx = Math.cos(a) * dotR;
                     const dy = Math.sin(a) * dotR;
                     ctx.beginPath();
                     ctx.arc(dx, dy, 4, 0, Math.PI * 2);
-                    ctx.fill();
+                    if (i < ST.correctTotal) {
+                        // 已点亮的呼吸灯 — 金色光晕
+                        ctx.fillStyle = `rgba(255, 200, 50, ${breathAlpha})`;
+                        ctx.fill();
+                        // 光晕
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(255, 200, 50, 0.8)';
+                        ctx.shadowBlur = 6 * breathAlpha;
+                        ctx.beginPath();
+                        ctx.arc(dx, dy, 4, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 215, 0, ${breathAlpha})`;
+                        ctx.fill();
+                        ctx.restore();
+                    } else {
+                        // 未点亮的暗色圆点
+                        ctx.fillStyle = '#d7ccc8';
+                        ctx.fill();
+                    }
                 }
 
                 // 4. (已移除顶部穿孔)
@@ -1067,17 +1285,32 @@
                 ctx.font = `bold ${timerFontSize}px "Microsoft YaHei"`;
                 ctx.fillText(remaining + 's', 0, -innerR * 0.45);
 
-                // 拼音 (大号蓝色)
-                ctx.fillStyle = '#2980b9';
-                const fontSize = Math.floor(innerR * 0.7);
-                ctx.font = `bold ${fontSize}px "Microsoft YaHei"`;
-                ctx.fillText(ST.currentPinyin || '--', 0, innerR * 0.05);
+                // 任务内容（根据阶段切换）
+                if (ST.gamePhase === 'wordToSound') {
+                    // 字找音：显示汉字
+                    ctx.fillStyle = '#2d3436';
+                    const fontSize = Math.floor(innerR * 0.8);
+                    ctx.font = `bold ${fontSize}px "Microsoft YaHei"`;
+                    ctx.fillText(ST.currentTaskDisplay || '--', 0, innerR * 0.05);
+                } else {
+                    // 音找字：显示拼音
+                    ctx.fillStyle = '#2980b9';
+                    const fontSize = Math.floor(innerR * 0.7);
+                    ctx.font = `bold ${fontSize}px "Microsoft YaHei"`;
+                    ctx.fillText(ST.currentTaskDisplay || '--', 0, innerR * 0.05);
+                }
 
                 // 进度 (下方小字)
-                const progressText = `${ST.completedWordCount + 1}/${allData.length}`;
+                const currentList = ST.gamePhase === 'wordToSound' ? wordList : pinyinList;
+                const progressText = `${ST.completedWordCount + 1}/${currentList.length}`;
                 ctx.fillStyle = '#2d3436';
                 ctx.font = `bold ${Math.floor(innerR * 0.25)}px "Microsoft YaHei"`;
                 ctx.fillText(progressText, 0, innerR * 0.55);
+
+                // 阶段标签
+                ctx.fillStyle = '#888';
+                ctx.font = `${Math.floor(innerR * 0.18)}px "Microsoft YaHei"`;
+                ctx.fillText(ST.gamePhase === 'wordToSound' ? '字找音' : '音找字', 0, -innerR * 0.72);
 
                 ctx.restore();
             }
@@ -1110,19 +1343,37 @@
                     type = 'obstacle';
                 } else if (r < pObs + pWrong) {
                     type = 'wrong';
-                    // v2.8: 严格排除同音字 — 干扰项不能是任何与当前拼音相同的汉字
-                    const correctWords = allData.filter(d => d.pinyin === ST.currentPinyin).map(d => d.word);
-                    const pool = allData.filter(d => d.pinyin !== ST.currentPinyin && !correctWords.includes(d.word));
-                    if (pool.length > 0) { const item = pool[Math.floor(Math.random() * pool.length)]; word = item.word; pinyin = item.pinyin; }
-                    else { type = 'obstacle'; } // fallback
+                    if (ST.gamePhase === 'wordToSound') {
+                        // 字找音：干扰项是错误拼音
+                        const correctPinyins = getAllData().filter(d => d.word === ST.currentCorrectWord).map(d => d.pinyin);
+                        const pool = getAllData().filter(d => !correctPinyins.includes(d.pinyin));
+                        if (pool.length > 0) { const item = pool[Math.floor(Math.random() * pool.length)]; word = item.pinyin; pinyin = item.pinyin; }
+                        else { type = 'obstacle'; }
+                    } else {
+                        // 音找字：干扰项是错误汉字
+                        const correctWords = getAllData().filter(d => d.pinyin === ST.currentPinyin).map(d => d.word);
+                        const pool = getAllData().filter(d => d.pinyin !== ST.currentPinyin && !correctWords.includes(d.word));
+                        if (pool.length > 0) { const item = pool[Math.floor(Math.random() * pool.length)]; word = item.word; pinyin = item.pinyin; }
+                        else { type = 'obstacle'; }
+                    }
                 } else {
                     type = 'correct';
-                    // v2.8: 只生成本关的唯一正确汉字
-                    if (ST.currentCorrectWord) {
-                        word = ST.currentCorrectWord;
-                        pinyin = ST.currentPinyin;
+                    if (ST.gamePhase === 'wordToSound') {
+                        // 字找音：正确项是正确拼音
+                        if (ST.currentPinyin) {
+                            word = ST.currentPinyin; // 显示拼音
+                            pinyin = ST.currentPinyin;
+                        } else {
+                            type = 'obstacle';
+                        }
                     } else {
-                        type = 'obstacle'; // fallback
+                        // 音找字：正确项是正确汉字
+                        if (ST.currentCorrectWord) {
+                            word = ST.currentCorrectWord;
+                            pinyin = ST.currentPinyin;
+                        } else {
+                            type = 'obstacle';
+                        }
                     }
                 }
 
@@ -1157,10 +1408,7 @@
                         if (dist < 30 * o.scale) {
                             // 玩家在跳跃中 → 跳过
                             if (ST.isJumping && ST.playerJump > 30) {
-                                if (o.type === 'obstacle') {
-                                    ST.score += CFG.scoring.dodgeObstacle;
-                                }
-                                // 跳过不触发碰撞
+                                // 跳过不触发碰撞，不加分
                             } else {
                                 handleCollision(o);
                             }
@@ -1340,11 +1588,13 @@
 
                 if (o.type === 'obstacle') {
                     ST.lives -= CFG.rules.obstacleDamage;
+                    ST.score += (CFG.scoring.hitObstacle || 0); // 扣分
                     SFX.hit();
                     ST.combo = 0; ST.wrongStreak = 0;
                     spawnParticles(trackX(o.track, o.y), o.y, '#ff3c3c', 15);
                 } else if (o.type === 'wrong') {
                     ST.lives -= CFG.rules.wrongDamage;
+                    ST.score += (CFG.scoring.hitDistractor || 0); // 扣分
                     SFX.wrong();
                     ST.combo = 0;
                     ST.wrongStreak++;
@@ -1353,19 +1603,46 @@
                 } else if (o.type === 'correct') {
                     ST.combo++;
                     if (ST.combo > ST.maxCombo) ST.maxCombo = ST.combo;
-                    const multiplier = Math.min(ST.combo, CFG.scoring.comboMax);
-                    ST.score += CFG.scoring.correctBase * multiplier;
+                    // v4.1: 基础得分 + 连击奖励查表
+                    ST.score += CFG.scoring.correctBase;
+                    if (ST.combo >= 2 && CFG.scoring.comboRewards) {
+                        const comboKey = Math.min(ST.combo, CFG.scoring.comboMax || 5);
+                        const reward = CFG.scoring.comboRewards[comboKey] || 0;
+                        ST.score += reward;
+                    }
                     ST.correctTotal++;
                     ST.correctStreak++;
                     ST.wrongStreak = 0;
-                    SFX.correct({ pinyin: ST.currentPinyin, word: o.word }); // v2.8: 传入word用于播放汉字读音
+                    // v4.1: 播放音频（音找字播汉字，字找音播拼音）
+                    if (ST.gamePhase === 'wordToSound') {
+                        SFX.correct({ word: ST.currentPinyin }); // 播拼音
+                    } else {
+                        SFX.correct({ pinyin: ST.currentPinyin, word: o.word });
+                    }
                     spawnParticles(trackX(o.track, o.y), o.y, '#00ffcc', 25);
                     spawnParticles(trackX(o.track, o.y), o.y, '#ffd700', 15);
                     spawnParticles(trackX(o.track, o.y), o.y, '#ff69b4', 10);
                 }
 
-                // v2.8.6: 每次连击重置显示时间
-                if (ST.combo >= 2) ST.comboDisplayTimer = 0.8; // 0.8秒后消失
+                // v4.1: 连击粒子效果
+                if (ST.combo >= 2) {
+                    ST.comboDisplayTimer = 0.8;
+                    // 生成金色粒子在连击文字位置
+                    const comboX = W / 2;
+                    const comboY = H * 0.42;
+                    for (let i = 0; i < 8; i++) {
+                        ST.particles.push({
+                            x: comboX + (Math.random() - 0.5) * 60,
+                            y: comboY + (Math.random() - 0.5) * 30,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6 - 2,
+                            life: 1, decay: 0.02 + Math.random() * 0.02,
+                            size: 3 + Math.random() * 4,
+                            color: Math.random() > 0.5 ? '#ffd700' : '#ff9500',
+                            type: 'star'
+                        });
+                    }
+                }
 
                 updateHUD();
                 checkLevelState();
@@ -1401,12 +1678,7 @@
                 ST.paused = true;
                 ST.totalLevelsCleared++;
                 ST.streakLevels++;
-                // ST.ringCompleteAnim = 1.0; // 移至 checkLevelState 提前触发
 
-                // 积分奖励
-                const remaining = CFG.rules.levelTime - ST.levelTime;
-                ST.score += CFG.scoring.levelClear + Math.floor(remaining) * CFG.scoring.timeBonus;
-                ST.score += ST.streakLevels * CFG.scoring.streakBonus;
                 SFX.levelUp();
 
                 // v2.8: 累加已完成的字数
@@ -1414,13 +1686,17 @@
 
                 // v2.8.2: 修正通关简报显示
                 const lcInfo = document.getElementById('lc-info');
-                const justPassedLevel = ST.levelIndex + 1; // 刚通过的是第X关
+                const justPassedLevel = ST.levelIndex + 1;
 
                 // 通关标题
-                document.querySelector('#level-clear h2').textContent = `第${justPassedLevel}关 通过！`;
+                const phaseLabel = ST.gamePhase === 'wordToSound' ? '字找音' : '音找字';
+                document.querySelector('#level-clear h2').textContent = `${phaseLabel} 第${justPassedLevel}关 通过！`;
 
-                // v2.8: 任务简报只显示本关的正确汉字
-                lcInfo.innerHTML = `任务：${ST.currentPinyin} → ${ST.currentCorrectWord}<br>正确：${ST.correctTotal}个 | 连击：${ST.maxCombo}<br>得分：${ST.score}分<br>等级：${getLevel(ST.score).rank}`;
+                // 任务简报
+                const taskDisplay = ST.gamePhase === 'wordToSound'
+                    ? `${ST.currentCorrectWord} → ${ST.currentPinyin}`
+                    : `${ST.currentPinyin} → ${ST.currentCorrectWord}`;
+                lcInfo.innerHTML = `任务：${taskDisplay}<br>正确：${ST.correctTotal}个 | 连击：${ST.maxCombo}<br>得分：${ST.score}分<br>等级：${getLevel(ST.score).rank}`;
 
                 document.getElementById('level-clear').style.display = 'flex';
             }
@@ -1428,34 +1704,54 @@
             function nextLevel() {
                 document.getElementById('level-clear').style.display = 'none';
                 ST.levelIndex++;
-                if (ST.levelIndex >= pinyinList.length) {
-                    // 所有关卡完成
-                    endGame(true); return;
+                const currentList = ST.gamePhase === 'wordToSound' ? wordList : pinyinList;
+                if (ST.levelIndex >= currentList.length) {
+                    if (ST.gamePhase === 'soundToWord') {
+                        // 音找字完成，显示过渡弹窗
+                        ST.paused = true;
+                        document.getElementById('phase-transition').style.display = 'flex';
+                        return;
+                    } else {
+                        // 字找音也完成，游戏结束
+                        endGame(true); return;
+                    }
                 }
                 startLevel();
             }
 
             function startLevel() {
                 ST.levelTime = 0; ST.correctTotal = 0; ST.correctStreak = 0; ST.wrongStreak = 0; ST.combo = 0; ST.maxCombo = 0;
-                ST.comboDisplayTimer = 0; // v2.8.6: 连击显示计时器
-                ST.isCompletingLevel = false; // v2.8.6: 重置通关状态
+                ST.comboDisplayTimer = 0;
+                ST.isCompletingLevel = false;
                 ST.objects = []; ST.particles = [];
-                ST.appearedCorrectWords.clear(); // v2.5: 重置同音字记录
-                ST.currentPinyin = pinyinList[ST.levelIndex];
-                const matches = allData.filter(d => d.pinyin === ST.currentPinyin);
-                // v2.8: 为本关选择唯一的正确汉字
-                if (matches.length > 0) {
-                    const selectedItem = matches[Math.floor(Math.random() * matches.length)];
-                    ST.currentCorrectWord = selectedItem.word;
-                    ST.currentWord = selectedItem.word; // 只显示本关的正确汉字
+                ST.appearedCorrectWords.clear();
+
+                if (ST.gamePhase === 'wordToSound') {
+                    // 字找音：任务区显示汉字，跑道出现拼音
+                    ST.currentCorrectWord = wordList[ST.levelIndex];
+                    const matches = getAllData().filter(d => d.word === ST.currentCorrectWord);
+                    ST.currentPinyin = matches.length > 0 ? matches[0].pinyin : '';
+                    ST.currentTaskDisplay = ST.currentCorrectWord;
+                    ST.currentWord = ST.currentCorrectWord;
                 } else {
-                    ST.currentCorrectWord = '';
-                    ST.currentWord = ST.currentPinyin;
+                    // 音找字：任务区显示拼音，跑道出现汉字
+                    ST.currentPinyin = pinyinList[ST.levelIndex];
+                    const matches = getAllData().filter(d => d.pinyin === ST.currentPinyin);
+                    if (matches.length > 0) {
+                        const selectedItem = matches[Math.floor(Math.random() * matches.length)];
+                        ST.currentCorrectWord = selectedItem.word;
+                        ST.currentWord = selectedItem.word;
+                    } else {
+                        ST.currentCorrectWord = '';
+                        ST.currentWord = ST.currentPinyin;
+                    }
+                    ST.currentTaskDisplay = ST.currentPinyin;
                 }
+
                 ST.paused = false;
                 ST.levelTimer = 0;
                 updateHUD();
-                // v2.8: 任务提示音 - 播放汉字读音而非拼音
+                // 任务提示音
                 setTimeout(() => speakWord(ST.currentCorrectWord || ST.currentPinyin), 300);
             }
 
@@ -1469,7 +1765,7 @@
                 title.textContent = allClear ? '🎉 全部通关！' : '游戏结束';
                 title.style.color = allClear ? '#00ffcc' : '#ff6b6b';
                 // v2.8.1: 修复游戏结束统计信息，显示正确的进度
-                const currentProgress = `${ST.completedWordCount}/${allData.length}`; // 当前已完成的字数
+                const currentProgress = `${ST.completedWordCount}/${getAllData().length}`; // 当前已完成的字数
                 const currentLevel = `第${ST.levelIndex + 1}关`; // 当前关卡
                 stats.innerHTML = `当前进度：${currentProgress}<br>当前小关：${currentLevel}<br>总得分：${ST.score}<br>最高连击：${ST.maxCombo}<br>等级：${getLevel(ST.score).rank}`;
                 document.getElementById('game-over').style.display = 'flex';
@@ -1481,17 +1777,20 @@
                 // v2.8: 从失败的关卡重新开始，保持进度
                 if (ST.failedLevelIndex >= 0) {
                     ST.levelIndex = ST.failedLevelIndex;
-                    // completedWordCount 保持不变，显示当前进度
                 } else {
                     ST.levelIndex = 0;
                     ST.completedWordCount = 0;
+                    ST.gamePhase = 'soundToWord'; // 重置为音找字阶段
                 }
                 ST.totalLevelsCleared = 0; ST.streakLevels = 0;
                 ST.objects = []; ST.particles = []; ST.roadLines = [];
                 ST.appearedCorrectWords.clear();
-                ST.lastTime = 0; // v2.6: 重置时间戳，修复 dt 异常
+                ST.lastTime = 0;
                 ST.gameOver = false; ST.running = true; ST.paused = false;
-                if (ST.failedLevelIndex < 0) shuffleArray(pinyinList); // 只在全新开始时打乱
+                if (ST.failedLevelIndex < 0) {
+                    shuffleArray(pinyinList);
+                    shuffleArray(wordList);
+                }
                 startLevel();
                 startBGM();
             }
@@ -1748,6 +2047,10 @@
             loadConfig();
             // v2.9.1: 同步 ST.lives（loadConfig 在 ST 初始化之后执行，需手动同步）
             ST.lives = CFG.rules.initLives;
+            // v4.0: loadConfig 可能注入了新的 CSV 数据，刷新列表
+            // v4.2: 任务总数等于 offlineData 总数（不去重）
+            pinyinList = CFG.dataSource.offlineData.map(d => d.pinyin);
+            wordList = CFG.dataSource.offlineData.map(d => d.word);
 
             document.getElementById('start-btn').onclick = () => {
                 const ss = document.getElementById('start-screen');
@@ -1764,6 +2067,18 @@
 
             document.getElementById('go-restart').onclick = restartGame;
             document.getElementById('lc-next').onclick = nextLevel;
+
+            // v4.1: 音找字→字找音 阶段切换
+            document.getElementById('phase-next-btn').onclick = () => {
+                document.getElementById('phase-transition').style.display = 'none';
+                ST.gamePhase = 'wordToSound';
+                ST.levelIndex = 0;
+                ST.completedWordCount = 0;
+                ST.failedLevelIndex = -1;
+                shuffleArray(wordList);
+                ST.paused = false;
+                startLevel();
+            };
 
         })();
     </script>

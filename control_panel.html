@@ -4,13 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>字跑大师 - 游戏设置</title>
+    <meta name="color-scheme" content="light only">
+    <title>WordRunMaster — 配置中心 v2.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <style>
+        /* ── Design Tokens (Light Theme) ── */
         :root {
-            --c: #00ffcc;
-            --bg: #0a0a12;
-            --panel-bg: #1a1a2e;
-            --text: #ddd;
+            --bg-body: #F4F6F9;
+            --bg-panel: #FFFFFF;
+            --bg-section: #F0F2F5;
+            --bg-input: #FFFFFF;
+            --bg-input-focus: #FFFFFF;
+            --border: #E0E4EA;
+            --border-active: #4A9EEB;
+            --accent: #4A9EEB;
+            --accent-light: #EBF4FD;
+            --accent-glow: rgba(74, 158, 235, 0.15);
+            --text-primary: #1A2332;
+            --text-secondary: #6B7B8D;
+            --text-label: #4A5568;
+            --text-value: #4A9EEB;
+            --success: #10B981;
+            --success-bg: rgba(16, 185, 129, 0.08);
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            --transition: 180ms ease;
         }
 
         * {
@@ -19,403 +46,1429 @@
             box-sizing: border-box;
         }
 
+        html {
+            color-scheme: light;
+        }
+
         body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: "Microsoft YaHei", sans-serif;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            line-height: 1.6;
             min-height: 100vh;
+            padding: 24px 16px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background: var(--panel-bg);
-            border: 1px solid #333;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        /* ── Layout ── */
+        .shell {
+            max-width: 720px;
+            margin: 0 auto;
         }
 
-        h1 {
-            color: var(--c);
-            text-align: center;
-            margin-bottom: 24px;
-            font-size: 24px;
-        }
-
-        h2 {
-            color: var(--c);
-            font-size: 18px;
-            margin: 20px 0 12px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 8px;
-        }
-
-        .panel-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 600px) {
-            .panel-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel-column {
+        .header {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 0 4px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: baseline;
             gap: 12px;
         }
 
-        .param-group {
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header .version {
+            font-size: 11px;
+            color: var(--accent);
+            background: var(--accent-light);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* ── Collapsible Section ── */
+        .section {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            cursor: pointer;
+            user-select: none;
+            transition: background var(--transition);
+        }
+
+        .section-header:hover {
+            background: var(--bg-section);
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .icon {
+            font-size: 16px;
+        }
+
+        .section-toggle {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: transform 300ms ease;
+            font-size: 12px;
+        }
+
+        .section.collapsed .section-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .section-body {
+            padding: 0 20px 20px;
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 300ms ease, padding 300ms ease, opacity 300ms ease;
+            opacity: 1;
+        }
+
+        .section.collapsed .section-body {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+        }
+
+        /* ── Subsection ── */
+        .subsection {
+            margin-bottom: 16px;
+        }
+
+        .subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .sub-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 10px;
+            padding-left: 2px;
+        }
+
+        /* ── Field Row ── */
+        .field {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 8px 12px;
-            border-radius: 8px;
+            gap: 6px;
+            margin-bottom: 10px;
+            background: var(--bg-section);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            transition: border-color var(--transition);
         }
 
-        label {
-            display: block;
-            color: #aaa;
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field:hover {
+            border-color: var(--border);
+        }
+
+        .field-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .field-head label {
             font-size: 12px;
-            margin-bottom: 4px;
+            color: var(--text-label);
+            font-weight: 500;
         }
 
-        .val {
-            float: right;
-            color: var(--c);
-            font-weight: bold;
+        .field-head .val {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-value);
+            font-variant-numeric: tabular-nums;
+            min-width: 36px;
+            text-align: right;
         }
 
+        .field-head .unit {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        /* ── Preset Select (3-option + text input) ── */
+        .preset-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .preset-btn {
+            padding: 4px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-panel);
+            color: var(--text-label);
+            font-size: 12px;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .preset-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* ── Editable Preset Number ── */
+        .preset-num {
+            width: 56px;
+            padding: 4px 6px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color var(--transition), background var(--transition), color var(--transition);
+            -moz-appearance: textfield;
+        }
+
+        .preset-num::-webkit-inner-spin-button,
+        .preset-num::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .preset-num:hover {
+            border-color: var(--accent);
+        }
+
+        .preset-num:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-input-focus);
+        }
+
+        .preset-num.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .preset-input {
+            flex: 1;
+            min-width: 60px;
+            padding: 4px 8px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            font-variant-numeric: tabular-nums;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .preset-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* ── Range Slider ── */
         input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
             width: 100%;
-            accent-color: var(--c);
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
             cursor: pointer;
         }
 
-        input[type=checkbox] {
-            accent-color: var(--c);
-            margin-right: 6px;
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: transform var(--transition);
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
             transform: scale(1.2);
         }
 
+        input[type=range]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+        }
+
+        /* ── Text Input ── */
         input[type=text],
-        select {
+        input[type=number] {
             width: 100%;
-            padding: 6px;
-            background: #333;
-            border: 1px solid #555;
-            color: #fff;
-            border-radius: 4px;
+            padding: 7px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
             font-size: 13px;
+            font-family: var(--font-sans);
+            font-variant-numeric: tabular-nums;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        input[type=text]:focus,
+        input[type=number]:focus {
+            border-color: var(--accent);
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        /* ── File Upload ── */
+        .file-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            background: var(--bg-section);
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .file-upload-area.has-file {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .file-upload-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .file-upload-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .file-upload-name {
+            font-size: 13px;
+            color: var(--success);
+            font-weight: 600;
             margin-top: 4px;
         }
 
-        button {
-            width: 100%;
+        /* ── Data Association (read-only tree) ── */
+        .data-assoc {
+            background: var(--bg-section);
+            border-radius: var(--radius-md);
             padding: 14px;
-            margin-top: 24px;
-            background: linear-gradient(135deg, #00ffcc, #00cc99);
-            color: #003d33;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.8;
         }
 
-        button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
-        }
-
-        .status-msg {
-            text-align: center;
-            margin-top: 12px;
-            height: 20px;
+        .data-assoc .assoc-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
             font-size: 13px;
-            color: var(--c);
+        }
+
+        .data-assoc .assoc-item {
+            color: var(--text-label);
+            padding-left: 12px;
+        }
+
+        .data-assoc .assoc-item::before {
+            content: '•';
+            margin-right: 6px;
+            color: var(--accent);
+        }
+
+        .data-assoc .assoc-rule {
+            color: var(--text-secondary);
+            padding-left: 28px;
+            font-size: 11px;
+        }
+
+        .data-assoc .assoc-rule::before {
+            content: '↳';
+            margin-right: 4px;
+            color: var(--warning);
+        }
+
+        /* ── Level Mode Radio ── */
+        .mode-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 12px;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            color: var(--text-label);
+            background: var(--bg-section);
+            transition: all var(--transition);
+            font-family: var(--font-sans);
+        }
+
+        .mode-tab:first-child {
+            border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+        }
+
+        .mode-tab:last-child {
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+
+        .mode-tab.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* ── Grade Table ── */
+        .grade-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .grade-table th {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .grade-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--bg-section);
+        }
+
+        .grade-table .grade-level {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 12px;
+            white-space: nowrap;
+            width: 38px;
+        }
+
+        .grade-table input[type=text],
+        .grade-table input[type=number] {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* ── Info text ── */
+        .info-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            line-height: 1.6;
+        }
+
+        /* read-only field */
+        .readonly-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-section);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .readonly-field .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-save {
+            flex: 1;
+            padding: 12px 24px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+        }
+
+        .btn-save:hover {
+            background: #3B8DD4;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .btn-save:active {
+            transform: scale(0.98);
+        }
+
+        .btn-reset {
+            padding: 12px 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: color var(--transition), border-color var(--transition);
+        }
+
+        .btn-reset:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-download {
+            padding: 12px 20px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .btn-download:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--success);
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: transform 300ms ease, opacity 300ms ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── Separator ── */
+        .sep {
+            height: 1px;
+            background: var(--border);
+            margin: 14px 0;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>🛠️ 游戏控制面板</h1>
-
-        <div style="padding: 0 0 12px 0; text-align: center;">
-            <label style="font-size: 16px; color: #fff; cursor: pointer;">
-                <input type="checkbox" id="cp-invincible"> 无敌模式 (测试专用)
-            </label>
-        </div>
-
-        <div class="panel-content">
-            <div class="panel-column">
-                <h2>📈 难度参数</h2>
-                <div class="param-group">
-                    <label>初始速度 <span class="val" id="cv-ss">2</span></label>
-                    <input type="range" id="cp-ss" min="1" max="10" step="0.5">
-                </div>
-                <div class="param-group">
-                    <label>最终速度 <span class="val" id="cv-se">6</span></label>
-                    <input type="range" id="cp-se" min="2" max="15" step="0.5">
-                </div>
-                <div class="param-group">
-                    <label>生成间隔(ms) 起始 <span class="val" id="cv-is">2000</span></label>
-                    <input type="range" id="cp-is" min="500" max="4000" step="100">
-                </div>
-                <div class="param-group">
-                    <label>生成间隔(ms) 终止 <span class="val" id="cv-ie">800</span></label>
-                    <input type="range" id="cp-ie" min="200" max="2000" step="100">
-                </div>
-                <div class="param-group">
-                    <label>障碍物概率 起始 <span class="val" id="cv-os">0.1</span></label>
-                    <input type="range" id="cp-os" min="0" max="0.6" step="0.05">
-                </div>
-                <div class="param-group">
-                    <label>障碍物概率 终止 <span class="val" id="cv-oe">0.4</span></label>
-                    <input type="range" id="cp-oe" min="0.1" max="0.8" step="0.05">
-                </div>
-                <div class="param-group">
-                    <label>干扰项概率 起始 <span class="val" id="cv-ws">0.2</span></label>
-                    <input type="range" id="cp-ws" min="0" max="0.6" step="0.05">
-                </div>
-                <div class="param-group">
-                    <label>干扰项概率 终止 <span class="val" id="cv-we">0.45</span></label>
-                    <input type="range" id="cp-we" min="0.1" max="0.8" step="0.05">
-                </div>
-            </div>
-
-            <div class="panel-column">
-                <h2>🎮 游戏规则</h2>
-                <div class="param-group">
-                    <label>单字关时限(秒) <span class="val" id="cv-lt">40</span></label>
-                    <input type="range" id="cp-lt" min="15" max="120" step="5">
-                </div>
-                <div class="param-group">
-                    <label>通关正确数 <span class="val" id="cv-wt">9</span></label>
-                    <input type="range" id="cp-wt" min="3" max="20" step="1">
-                </div>
-                <div class="param-group">
-                    <label>初始生命值 <span class="val" id="cv-il">3</span></label>
-                    <input type="range" id="cp-il" min="1" max="10" step="0.5">
-                </div>
-
-                <h2>⚛️ 物理引擎</h2>
-                <div class="param-group">
-                    <label>跳跃力度 <span class="val" id="cv-jf">750</span></label>
-                    <input type="range" id="cp-jf" min="400" max="1500" step="50">
-                </div>
-                <div class="param-group">
-                    <label>重力 (Gravity) <span class="val" id="cv-gv">2000</span></label>
-                    <input type="range" id="cp-gv" min="800" max="4000" step="100">
-                </div>
-                <div class="param-group">
-                    <label>物体远端缩放 <span class="val" id="cv-oss">0.08</span></label>
-                    <input type="range" id="cp-oss" min="0.01" max="0.3" step="0.01">
-                </div>
-                <div class="param-group">
-                    <label>物体近端缩放 <span class="val" id="cv-ose">1.0</span></label>
-                    <input type="range" id="cp-ose" min="0.5" max="2.0" step="0.1">
-                </div>
-                <div class="param-group">
-                    <label>障碍物缩放 <span class="val" id="cv-obs">1.0</span></label>
-                    <input type="range" id="cp-obs" min="0.5" max="2.0" step="0.1">
-                </div>
+    <div class="shell">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>配置中心</h1>
+                <span class="version">v2.0</span>
             </div>
         </div>
 
-        <div style="margin-top: 20px;"></div>
-        <details open style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
-            <summary style="cursor:pointer; padding:10px; font-weight:bold; color:#00ffcc;">📝 关卡设计配置</summary>
-            <div style="padding:15px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="param-group">
-                    <label>关卡名称</label>
-                    <input type="text" id="cp-level-name">
+        <!-- ═══════ 1. 物理引擎 ═══════ -->
+        <div class="section" id="sec-physics">
+            <div class="section-header" onclick="toggleSection('sec-physics')">
+                <div class="section-title"><span class="icon">⚙️</span> 物理引擎</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <!-- 障碍物缩放 -->
+                <div class="subsection">
+                    <div class="sub-label">障碍物缩放</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>障碍物近端大小</label>
+                            <span class="val" data-for="physical_engine.obstacleScale.near">1.0</span>
+                        </div>
+                        <input type="range" id="physical_engine.obstacleScale.near" min="0.5" max="2.0" step="0.05"
+                            value="1.0">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>障碍物远端大小</label>
+                            <span class="val" data-for="physical_engine.obstacleScale.far">0.15</span>
+                        </div>
+                        <input type="range" id="physical_engine.obstacleScale.far" min="0.05" max="0.5" step="0.01"
+                            value="0.15">
+                    </div>
                 </div>
-                <div class="param-group">
-                    <label>任务区数据来源</label>
-                    <select id="cp-task-source">
-                        <option value="pinyin">拼音 (pinyin)</option>
-                        <option value="word">汉字 (word)</option>
-                    </select>
+
+                <!-- 任务项缩放 -->
+                <div class="subsection">
+                    <div class="sub-label">任务项缩放</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>任务项近端大小</label>
+                            <span class="val" data-for="physical_engine.itemScale.near">0.9</span>
+                        </div>
+                        <input type="range" id="physical_engine.itemScale.near" min="0.5" max="2.0" step="0.05"
+                            value="0.9">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>任务项远端大小</label>
+                            <span class="val" data-for="physical_engine.itemScale.far">0.15</span>
+                        </div>
+                        <input type="range" id="physical_engine.itemScale.far" min="0.05" max="0.5" step="0.01"
+                            value="0.15">
+                    </div>
                 </div>
-                <div class="param-group">
-                    <label>正确项数据来源</label>
-                    <select id="cp-correct-source">
-                        <option value="word">汉字 (word)</option>
-                    </select>
-                </div>
-                <div class="param-group">
-                    <label>干扰项数据来源</label>
-                    <select id="cp-wrong-source">
-                        <option value="word">汉字 (word)</option>
-                        <option value="word_exclude_homophone">汉字·排除同音字</option>
-                    </select>
-                </div>
-                <div class="param-group">
-                    <label>多音字读音规则</label>
-                    <select id="cp-polyphone-rule">
-                        <option value="use_data_pinyin">使用数据中拼音</option>
-                        <option value="auto">自动（浏览器TTS）</option>
-                    </select>
-                </div>
-                <div class="param-group">
-                    <label>同音字显示规则</label>
-                    <select id="cp-homophone-rule">
-                        <option value="exclusive">互斥（不同时出现）</option>
-                        <option value="allow_both">允许同时出现</option>
-                    </select>
+
+                <!-- 运动学参数 -->
+                <div class="subsection">
+                    <div class="sub-label">运动学参数</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>角色滞空时间<span class="unit">（毫秒）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.airTime"
+                                value="750" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.airTime"
+                                value="900" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.airTime"
+                                value="1000" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>重力感 / 落地时间<span class="unit">（毫秒）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
+                                value="500" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
+                                value="750" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
+                                value="900" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
                 </div>
             </div>
-        </details>
+        </div>
 
-        <button id="save-btn">💾 保存设置并同步</button>
-        <div id="status-msg" class="status-msg">设置已保存！请刷新游戏页面生效</div>
+        <!-- ═══════ 2. 单元关卡设置 ═══════ -->
+        <div class="section" id="sec-unit">
+            <div class="section-header" onclick="toggleSection('sec-unit')">
+                <div class="section-title"><span class="icon">📚</span> 单元关卡设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <!-- CSV 上传 -->
+                <div class="subsection">
+                    <div class="sub-label">单元数据来源</div>
+                    <div class="file-upload-area" id="csv-upload-area"
+                        onclick="document.getElementById('csv-file-input').click()">
+                        <div class="file-upload-icon">📄</div>
+                        <div class="file-upload-text">点击上传 CSV 文件</div>
+                        <div class="file-upload-name" id="csv-file-name"></div>
+                    </div>
+                    <input type="file" id="csv-file-input" accept=".csv" style="display:none">
+                </div>
+
+                <!-- 单元信息 -->
+                <div class="subsection">
+                    <div class="sub-label">单元信息</div>
+                    <div class="field">
+                        <input type="text" id="unit_settings.unitName" value="" placeholder="上传CSV后自动填入文件名，可修改">
+                    </div>
+                </div>
+
+                <!-- 关卡模式 -->
+                <div class="subsection">
+                    <div class="sub-label">单元关卡设置</div>
+                    <div class="mode-tabs">
+                        <div class="mode-tab active" data-mode="soundToWord" onclick="switchMode(this)">音找字</div>
+                        <div class="mode-tab" data-mode="wordToSound" onclick="switchMode(this)">字找音</div>
+                    </div>
+
+                    <!-- 音找字 数据关联 -->
+                    <div class="data-assoc" id="assoc-soundToWord">
+                        <div class="assoc-title">「音找字」数据关联设置</div>
+                        <div class="assoc-item">任务区数据来源：<strong>pinyin</strong></div>
+                        <div class="assoc-item">正确项数据来源：<strong>word</strong></div>
+                        <div class="assoc-rule">正确项规则1：同音字不可同时出现</div>
+                        <div class="assoc-rule">正确项规则2：多音字只读 pinyin 中的读音</div>
+                        <div class="assoc-item">干扰项数据来源：<strong>word</strong></div>
+                        <div class="assoc-rule">干扰项规则：排除同音字</div>
+                    </div>
+
+                    <!-- 字找音 数据关联 -->
+                    <div class="data-assoc" id="assoc-wordToSound" style="display:none">
+                        <div class="assoc-title">「字找音」数据关联设置</div>
+                        <div class="assoc-item">任务区数据来源：<strong>word</strong></div>
+                        <div class="assoc-item">正确项数据来源：<strong>pinyin</strong></div>
+                        <div class="assoc-rule">正确项规则：多音字只读 pinyin 中的读音</div>
+                        <div class="assoc-item">干扰项数据来源：<strong>pinyin</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 3. 小关通关设置 ═══════ -->
+        <div class="section" id="sec-level">
+            <div class="section-header" onclick="toggleSection('sec-level')">
+                <div class="section-title"><span class="icon">🏁</span> 小关通关设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <div class="subsection">
+                    <div class="sub-label">通关条件</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>通关时间<span class="unit">（秒）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
+                                value="30" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
+                                value="40" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
+                                value="50" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>累计撞击正确项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
+                                value="6" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
+                                value="8" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
+                                value="10" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>连续撞击正确项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
+                                value="3" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
+                                value="4" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
+                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="sub-label">失败条件</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>累计撞击错误项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
+                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
+                                value="6" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
+                                value="7" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>连续撞击错误项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
+                                value="3" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
+                                value="4" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
+                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="readonly-field">
+                        <span class="dot"></span> 生命值为0（不可设置）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 4. 难度设置 ═══════ -->
+        <div class="section" id="sec-difficulty">
+            <div class="section-header" onclick="toggleSection('sec-difficulty')">
+                <div class="section-title"><span class="icon">📊</span> 难度设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <div class="subsection">
+                    <div class="sub-label">生成密度</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>正确项密度概率</label>
+                            <span class="val" data-for="difficulty.spawn.targetDensity">0.6</span>
+                        </div>
+                        <input type="range" id="difficulty.spawn.targetDensity" min="0.1" max="1.0" step="0.05"
+                            value="0.6">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>干扰项密度概率</label>
+                            <span class="val" data-for="difficulty.spawn.distractorDensity">0.3</span>
+                        </div>
+                        <input type="range" id="difficulty.spawn.distractorDensity" min="0.1" max="1.0" step="0.05"
+                            value="0.3">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>障碍物密度概率</label>
+                            <span class="val" data-for="difficulty.spawn.obstacleDensity">0.3</span>
+                        </div>
+                        <input type="range" id="difficulty.spawn.obstacleDensity" min="0.1" max="1.0" step="0.05"
+                            value="0.3">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 5. 计分系统 ═══════ -->
+        <div class="section" id="sec-scoring">
+            <div class="section-header" onclick="toggleSection('sec-scoring')">
+                <div class="section-title"><span class="icon">🏆</span> 计分系统</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <!-- 基础得分 -->
+                <div class="subsection">
+                    <div class="sub-label">基础得分</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>撞击正确项得分<span class="unit">（分）</span></label>
+                        </div>
+                        <input type="number" id="scoring.base.hitTarget" step="1" value="10">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>撞击干扰项扣分<span class="unit">（分）</span></label>
+                        </div>
+                        <input type="number" id="scoring.base.hitDistractor" step="1" value="-3">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>撞击障碍物<span class="unit">（分）</span></label>
+                        </div>
+                        <input type="number" id="scoring.base.hitObstacle" step="1" value="-5">
+                    </div>
+                </div>
+
+                <!-- 连击奖励 -->
+                <div class="subsection">
+                    <div class="sub-label">连击奖励</div>
+                    <div class="field">
+                        <div class="field-head"><label>2连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo2" step="5" value="20">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>3连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo3" step="5" value="30">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>4连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo4" step="5" value="40">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>5连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo5" step="5" value="50">
+                    </div>
+                    <p class="info-text">※ 奖励计分统计规则：连续连击取最后一次最高奖励</p>
+                </div>
+
+                <!-- 生命值 -->
+                <div class="subsection">
+                    <div class="sub-label">生命值</div>
+                    <div class="field">
+                        <div class="field-head"><label>初始生命值<span class="unit">（条）</span></label></div>
+                        <input type="number" id="scoring.lives.initLives" step="1" min="1" value="3">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>撞击干扰项扣生命<span class="unit">（条）</span></label></div>
+                        <input type="number" id="scoring.lives.distractorDamage" step="0.5" min="0" value="0.5">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>撞击障碍物扣生命<span class="unit">（条）</span></label></div>
+                        <input type="number" id="scoring.lives.obstacleDamage" step="0.5" min="0" value="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 6. 角色设置 ═══════ -->
+        <div class="section" id="sec-character">
+            <div class="section-header" onclick="toggleSection('sec-character')">
+                <div class="section-title"><span class="icon">👤</span> 角色设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <div class="subsection">
+                    <div class="sub-label">角色昵称</div>
+                    <div class="field">
+                        <input type="text" id="character.nickname" value="贝贝">
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="sub-label">角色等级</div>
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>等级</th>
+                                <th>名称</th>
+                                <th>条件（分）</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grade-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <button class="btn-save" id="btn-save">💾 保存配置</button>
+            <button class="btn-download" id="btn-download">📥 下载分享</button>
+            <button class="btn-reset" id="btn-reset">恢复默认</button>
+        </div>
     </div>
 
+    <!-- Toast -->
+    <div class="toast" id="toast">✓ 配置已保存至本地存储</div>
+
     <script>
-        // 默认配置（作为基准）
-        const DEFAULT_CONFIG = {
-            rules: {
-                levelTime: 40, winCorrectTotal: 9, initLives: 3
+        // ══════════════════════════════════════════════
+        //  角色等级默认数据
+        // ══════════════════════════════════════════════
+        const GRADE_DEFAULTS = [
+            { level: 'V1', name: '童生', score: 100 },
+            { level: 'V2', name: '秀才', score: 200 },
+            { level: 'V3', name: '贡生', score: 300 },
+            { level: 'V4', name: '举人', score: 400 },
+            { level: 'V5', name: '解元', score: 500 },
+            { level: 'V6', name: '贡士', score: 600 },
+            { level: 'V7', name: '会元', score: 700 },
+            { level: 'V8', name: '进士', score: 800 },
+            { level: 'V9', name: '探花', score: 900 },
+            { level: 'V10', name: '榜眼', score: 1000 },
+            { level: 'V11', name: '状元', score: 1100 }
+        ];
+
+        // ══════════════════════════════════════════════
+        //  CFG 默认值
+        // ══════════════════════════════════════════════
+        const DEFAULTS = {
+            physical_engine: {
+                trackWidth: 1.0,
+                obstacleScale: { near: 1.0, far: 0.15 },
+                itemScale: { near: 0.9, far: 0.15 },
+                physics: { airTime: 750, gravity: 500 }
+            },
+            unit_settings: {
+                unitName: '',
+                csvData: null,
+                mode: 'soundToWord'
+            },
+            level_settings: {
+                goals: { timeLimit: 40, targetCount: 8, comboTarget: 3 },
+                fail: { totalWrong: 5, comboWrong: 3 }
             },
             difficulty: {
-                speedStart: 2, speedEnd: 6,
-                intervalStart: 2000, intervalEnd: 800,
-                obstacleStart: 0.10, obstacleEnd: 0.40,
-                wrongStart: 0.20, wrongEnd: 0.45
+                spawn: { targetDensity: 0.6, distractorDensity: 0.3, obstacleDensity: 0.3 }
             },
-            physics: {
-                jumpForce: 750, gravity: 2000,
-                objScaleStart: 0.08, objScaleEnd: 1.0, obstacleScale: 1.0
+            scoring: {
+                base: { hitTarget: 10, hitDistractor: -3, hitObstacle: -5 },
+                combo: { combo2: 20, combo3: 30, combo4: 40, combo5: 50 },
+                lives: { initLives: 3, distractorDamage: 0.5, obstacleDamage: 1.0 }
             },
-            levelDesign: {
-                levelName: "音找字",
-                taskSource: "pinyin",
-                correctSource: "word",
-                wrongSource: "word_exclude_homophone",
-                polyphoneRule: "use_data_pinyin",
-                homophoneRule: "exclusive"
-            },
-            ui: { isInvincible: false }
+            character: {
+                nickname: '贝贝',
+                grades: JSON.parse(JSON.stringify(GRADE_DEFAULTS))
+            }
         };
 
-        // 当前配置
-        let CFG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        const CFG = JSON.parse(JSON.stringify(DEFAULTS));
 
-        // 绑定所有输入控件
-        const inputs = {
-            // Difficulty
-            'cp-ss': ['difficulty', 'speedStart'],
-            'cp-se': ['difficulty', 'speedEnd'],
-            'cp-is': ['difficulty', 'intervalStart'],
-            'cp-ie': ['difficulty', 'intervalEnd'],
-            'cp-os': ['difficulty', 'obstacleStart'],
-            'cp-oe': ['difficulty', 'obstacleEnd'],
-            'cp-ws': ['difficulty', 'wrongStart'],
-            'cp-we': ['difficulty', 'wrongEnd'],
-            // Rules
-            'cp-lt': ['rules', 'levelTime'],
-            'cp-wt': ['rules', 'winCorrectTotal'],
-            'cp-il': ['rules', 'initLives'],
-            // Physics
-            'cp-jf': ['physics', 'jumpForce'],
-            'cp-gv': ['physics', 'gravity'],
-            'cp-oss': ['physics', 'objScaleStart'],
-            'cp-ose': ['physics', 'objScaleEnd'],
-            'cp-obs': ['physics', 'obstacleScale'],
-            // Level Design
-            'cp-level-name': ['levelDesign', 'levelName'],
-            'cp-task-source': ['levelDesign', 'taskSource'],
-            'cp-correct-source': ['levelDesign', 'correctSource'],
-            'cp-wrong-source': ['levelDesign', 'wrongSource'],
-            'cp-polyphone-rule': ['levelDesign', 'polyphoneRule'],
-            'cp-homophone-rule': ['levelDesign', 'homophoneRule']
-        };
-
-        function loadConfig() {
-            try {
-                const saved = localStorage.getItem('WRM_UserConfig');
-                if (saved) {
-                    const userConfig = JSON.parse(saved);
-                    // 深度合并
-                    if (userConfig.ui) Object.assign(CFG.ui, userConfig.ui);
-                    if (userConfig.rules) Object.assign(CFG.rules, userConfig.rules);
-                    if (userConfig.difficulty) Object.assign(CFG.difficulty, userConfig.difficulty);
-                    if (userConfig.physics) Object.assign(CFG.physics, userConfig.physics);
-                    if (userConfig.levelDesign) Object.assign(CFG.levelDesign, userConfig.levelDesign);
+        // ══════════════════════════════════════════════
+        //  Utility functions
+        // ══════════════════════════════════════════════
+        function getByPath(obj, path) {
+            return path.split('.').reduce((o, k) => o && o[k], obj);
+        }
+        function setByPath(obj, path, val) {
+            const keys = path.split('.');
+            let cur = obj;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!(keys[i] in cur)) cur[keys[i]] = {};
+                cur = cur[keys[i]];
+            }
+            cur[keys[keys.length - 1]] = val;
+        }
+        function deepMerge(target, source) {
+            for (const key of Object.keys(source)) {
+                if (source[key] && typeof source[key] === 'object' &&
+                    !Array.isArray(source[key]) && target[key] && typeof target[key] === 'object') {
+                    deepMerge(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
                 }
-            } catch (e) { console.error(e); }
-            updateUI();
+            }
         }
 
-        function updateUI() {
-            // UI Checkbox
-            document.getElementById('cp-invincible').checked = CFG.ui.isInvincible;
+        // ══════════════════════════════════════════════
+        //  Collapsible sections
+        // ══════════════════════════════════════════════
+        function toggleSection(id) {
+            document.getElementById(id).classList.toggle('collapsed');
+        }
 
-            // Inputs
-            for (const [id, path] of Object.entries(inputs)) {
-                const el = document.getElementById(id);
-                if (!el) continue;
-                const val = CFG[path[0]][path[1]];
+        // ══════════════════════════════════════════════
+        //  Preset select (3-option + text)
+        // ══════════════════════════════════════════════
+        function setPreset(path, value, btnEl) {
+            const input = document.getElementById(path);
+            if (input) input.value = value;
+            // highlight active btn
+            const group = btnEl.parentElement;
+            group.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            // sync to CFG
+            setByPath(CFG, path, value);
+        }
 
-                if (el.tagName === 'SELECT' || el.type === 'text') {
+        // Editable preset number: click to select, edit value in-place
+        function selectEditablePreset(el) {
+            const path = el.dataset.target;
+            const val = parseFloat(el.value);
+            if (isNaN(val)) return;
+
+            // 1. highlight active in THIS group
+            const group = el.parentElement;
+            group.querySelectorAll('.preset-num').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+
+            // 2. update CFG object
+            setByPath(CFG, path, val);
+
+            // 3. (Optional) Sync other inputs if they exist (unlikely now)
+            const input = document.getElementById(path);
+            if (input) input.value = val;
+        }
+
+        // Sync editable preset highlight when value matches
+        function syncEditablePresetHighlight(path) {
+            const val = getByPath(CFG, path);
+            document.querySelectorAll(`.preset-num[data-target="${path}"]`).forEach(num => {
+                num.classList.toggle('active', parseFloat(num.value) == val);
+            });
+        }
+
+        // Bind change events to all editable preset numbers
+        document.querySelectorAll('.preset-num').forEach(num => {
+            num.addEventListener('change', () => {
+                // When user edits the value and presses enter or blurs, just update the value
+                // but do NOT auto-select — user needs to click to select
+            });
+            // Prevent click default from selecting text inside, keep focus for editing
+            num.addEventListener('focus', (e) => e.target.select());
+        });
+
+        function syncPresetHighlight(inputEl) {
+            const group = inputEl.parentElement;
+            const val = inputEl.value.trim();
+            group.querySelectorAll('.preset-btn').forEach(b => {
+                b.classList.toggle('active', b.textContent.trim() === val);
+            });
+        }
+
+        // ══════════════════════════════════════════════
+        //  Mode tabs (音找字 / 字找音)
+        // ══════════════════════════════════════════════
+        function switchMode(el) {
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            const mode = el.dataset.mode;
+            CFG.unit_settings.mode = mode;
+            document.getElementById('assoc-soundToWord').style.display = mode === 'soundToWord' ? '' : 'none';
+            document.getElementById('assoc-wordToSound').style.display = mode === 'wordToSound' ? '' : 'none';
+        }
+
+        // ══════════════════════════════════════════════
+        //  CSV upload
+        // ══════════════════════════════════════════════
+        document.getElementById('csv-file-input').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const area = document.getElementById('csv-upload-area');
+            const nameEl = document.getElementById('csv-file-name');
+            const unitNameInput = document.getElementById('unit_settings.unitName');
+
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const text = ev.target.result;
+                const lines = text.trim().split(/\r?\n/);
+                const headers = lines[0].split(',').map(h => h.trim());
+                const data = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',');
+                    const row = {};
+                    headers.forEach((h, idx) => row[h] = (cols[idx] || '').trim());
+                    data.push(row);
+                }
+                CFG.unit_settings.csvData = data;
+
+                // Update UI
+                const baseName = file.name.replace(/\.csv$/i, '');
+                area.classList.add('has-file');
+                nameEl.textContent = '✓ ' + file.name + '（' + data.length + ' 条数据）';
+                if (!unitNameInput.value) {
+                    unitNameInput.value = baseName;
+                    CFG.unit_settings.unitName = baseName;
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // ══════════════════════════════════════════════
+        //  Grade table rendering
+        // ══════════════════════════════════════════════
+        function renderGradeTable() {
+            const tbody = document.getElementById('grade-tbody');
+            const grades = CFG.character.grades;
+            tbody.innerHTML = '';
+            grades.forEach((g, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="grade-level">${g.level}</td>
+                    <td><input type="text" data-grade-idx="${i}" data-grade-field="name" value="${g.name}" style="width:80px"></td>
+                    <td><input type="number" data-grade-idx="${i}" data-grade-field="score" value="${g.score}" style="width:80px"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            // Bind events
+            tbody.querySelectorAll('input').forEach(inp => {
+                inp.addEventListener('input', () => {
+                    const idx = parseInt(inp.dataset.gradeIdx);
+                    const field = inp.dataset.gradeField;
+                    if (field === 'score') {
+                        CFG.character.grades[idx].score = parseFloat(inp.value) || 0;
+                    } else {
+                        CFG.character.grades[idx].name = inp.value;
+                    }
+                });
+            });
+        }
+
+        // ══════════════════════════════════════════════
+        //  Two-way binding
+        // ══════════════════════════════════════════════
+        // Collect bindable inputs (exclude grade-table and csv)
+        function getBindableInputs() {
+            return document.querySelectorAll(
+                'input[id]:not([type=file]):not([data-grade-idx]), select[id]'
+            );
+        }
+
+        function cfgToUI() {
+            getBindableInputs().forEach(el => {
+                const path = el.id;
+                const val = getByPath(CFG, path);
+                if (val === undefined) return;
+                if (el.type === 'checkbox') {
+                    el.checked = !!val;
+                } else if (el.type === 'range') {
                     el.value = val;
+                    const span = document.querySelector(`.val[data-for="${path}"]`);
+                    if (span) span.textContent = val;
                 } else {
                     el.value = val;
-                    // update display span
-                    const span = document.getElementById(id.replace('cp-', 'cv-'));
-                    if (span) span.textContent = val;
                 }
-            }
+            });
+
+            // sync editable preset nums
+            const presetPaths = [
+                'physical_engine.physics.airTime', 'physical_engine.physics.gravity',
+                'level_settings.goals.timeLimit', 'level_settings.goals.targetCount', 'level_settings.goals.comboTarget',
+                'level_settings.fail.totalWrong', 'level_settings.fail.comboWrong'
+            ];
+            presetPaths.forEach(syncEditablePresetHighlight);
+
+            // mode tabs
+            document.querySelectorAll('.mode-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.mode === CFG.unit_settings.mode);
+            });
+            document.getElementById('assoc-soundToWord').style.display =
+                CFG.unit_settings.mode === 'soundToWord' ? '' : 'none';
+            document.getElementById('assoc-wordToSound').style.display =
+                CFG.unit_settings.mode === 'wordToSound' ? '' : 'none';
+
+            renderGradeTable();
         }
 
-        function saveConfig() {
-            // Read values
-            CFG.ui.isInvincible = document.getElementById('cp-invincible').checked;
-
-            for (const [id, path] of Object.entries(inputs)) {
-                const el = document.getElementById(id);
-                let val = el.value;
-                if (el.type === 'range' || el.type === 'number') {
-                    val = parseFloat(val);
+        function uiToCFG() {
+            // 1. Handle standard inputs (with IDs)
+            getBindableInputs().forEach(el => {
+                const path = el.id;
+                let val;
+                if (el.type === 'checkbox') {
+                    val = el.checked;
+                } else if (el.type === 'range' || el.type === 'number') {
+                    val = parseFloat(el.value);
+                } else if (el.tagName === 'SELECT') {
+                    val = isNaN(el.value) ? el.value : parseFloat(el.value);
+                } else {
+                    val = el.value;
                 }
-                CFG[path[0]][path[1]] = val;
-            }
+                setByPath(CFG, path, val);
+            });
 
-            // Save
-            localStorage.setItem('WRM_UserConfig', JSON.stringify(CFG));
-
-            // Show status
-            const msg = document.getElementById('status-msg');
-            msg.style.opacity = '1';
-            setTimeout(() => msg.style.opacity = '0', 2000);
+            // 2. Handle group presets (Winning conditions, Kinematics etc)
+            document.querySelectorAll('.preset-group').forEach(group => {
+                const activeNum = group.querySelector('.preset-num.active');
+                if (activeNum) {
+                    const path = activeNum.dataset.target;
+                    const val = parseFloat(activeNum.value);
+                    if (!isNaN(val)) setByPath(CFG, path, val);
+                }
+            });
         }
 
-        // Listeners
-        document.getElementById('save-btn').onclick = saveConfig;
-
-        // Range listeners for spans
-        document.querySelectorAll('input[type=range]').forEach(input => {
-            input.addEventListener('input', (e) => {
-                const span = document.getElementById(e.target.id.replace('cp-', 'cv-'));
-                if (span) span.textContent = e.target.value;
+        // ══════════════════════════════════════════════
+        //  Live binding events
+        // ══════════════════════════════════════════════
+        document.querySelectorAll('input[type=range]').forEach(slider => {
+            slider.addEventListener('input', () => {
+                const span = document.querySelector(`.val[data-for="${slider.id}"]`);
+                if (span) span.textContent = slider.value;
+                setByPath(CFG, slider.id, parseFloat(slider.value));
+            });
+        });
+        document.querySelectorAll('input[type=number]').forEach(inp => {
+            if (inp.dataset.gradeIdx !== undefined) return;
+            inp.addEventListener('input', () => {
+                if (inp.id) setByPath(CFG, inp.id, parseFloat(inp.value));
+            });
+        });
+        document.querySelectorAll('.preset-input').forEach(inp => {
+            inp.addEventListener('input', () => {
+                syncPresetHighlight(inp);
+                const num = parseFloat(inp.value);
+                setByPath(CFG, inp.id, isNaN(num) ? inp.value : num);
+            });
+        });
+        document.querySelectorAll('input[type=text]').forEach(inp => {
+            if (inp.classList.contains('preset-input')) return;
+            if (inp.dataset.gradeIdx !== undefined) return;
+            inp.addEventListener('input', () => {
+                if (inp.id) setByPath(CFG, inp.id, inp.value);
             });
         });
 
-        // Init
-        loadConfig();
+        // ══════════════════════════════════════════════
+        //  Save / Load / Reset
+        // ══════════════════════════════════════════════
+        function save() {
+            uiToCFG();
+            localStorage.setItem('WRM_UserConfig', JSON.stringify(CFG));
+            showToast('✓ 配置已保存至本地存储');
+        }
+
+        function load() {
+            try {
+                const raw = localStorage.getItem('WRM_UserConfig');
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                deepMerge(CFG, saved);
+                // Restore grades array if present
+                if (saved.character && Array.isArray(saved.character.grades)) {
+                    CFG.character.grades = saved.character.grades;
+                }
+            } catch (e) {
+                console.warn('加载配置失败:', e);
+            }
+        }
+
+        function resetToDefaults() {
+            const fresh = JSON.parse(JSON.stringify(DEFAULTS));
+            Object.keys(fresh).forEach(k => CFG[k] = fresh[k]);
+            cfgToUI();
+            showToast('✓ 已恢复默认配置');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (msg) t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        // ══════════════════════════════════════════════
+        //  Download / Share
+        // ══════════════════════════════════════════════
+        function downloadShare() {
+            uiToCFG();
+            const unitName = CFG.metadata.unitTitle || '字跑大师配置'; // 从单元信息获取
+            const cfgJson = JSON.stringify(CFG, null, 2);
+
+            const htmlContent = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordRunMaster 配置 — ${unitName}</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding:40px; background:#F4F6F9; color:#1A2332; max-width:800px; margin:0 auto; }
+h1 { font-size:22px; margin-bottom:8px; }
+.meta { color:#6B7B8D; font-size:13px; margin-bottom:24px; }
+pre { background:#fff; border:1px solid #E0E4EA; border-radius:10px; padding:20px; font-size:13px; overflow-x:auto; line-height:1.6; }
+.tip { margin-top:20px; padding:12px 16px; background:#EBF4FD; border-radius:8px; font-size:12px; color:#4A9EEB; }
+</style>
+</head>
+<body>
+<h1>📋 ${unitName}</h1>
+<p class="meta">导出时间：${new Date().toLocaleString('zh-CN')}</p>
+<pre id="cfg-data">${cfgJson.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+<div class="tip">💡 将此文件与游戏 index.html 放在同一目录，或将 pre 标签内的 JSON 复制到 localStorage 键 <strong>WRM_UserConfig</strong> 中即可生效。</div>
+<script>
+// Auto-load config into localStorage when opened
+try {
+    const cfg = ${cfgJson};
+    localStorage.setItem('WRM_UserConfig', JSON.stringify(cfg));
+    document.querySelector('.tip').innerHTML += '<br>✅ 配置已自动写入当前浏览器的本地存储。';
+} catch(e) { console.warn(e); }
+<\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = unitName + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('📥 已下载 ' + unitName + '.html');
+        }
+
+        // ══════════════════════════════════════════════
+        //  Events
+        // ══════════════════════════════════════════════
+        document.getElementById('btn-save').addEventListener('click', save);
+        document.getElementById('btn-reset').addEventListener('click', resetToDefaults);
+        document.getElementById('btn-download').addEventListener('click', downloadShare);
+
+        // ══════════════════════════════════════════════
+        //  Init
+        // ══════════════════════════════════════════════
+        load();
+        cfgToUI();
     </script>
 </body>
 
