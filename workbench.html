@@ -3,425 +3,654 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>字跑大师 - 生产力工作台 v2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字跑大师数据生成平台 v3.5</title>
+    <!-- pdf.js -->
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <!-- pinyin-pro -->
+    <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.18.2/dist/index.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            --c: #00ffcc;
-            --bg: #f0f2f5
+            --bg-body: #F4F6F9;
+            --bg-panel: #FFFFFF;
+            --accent: #4A9EEB;
+            --accent-hover: #357ABD;
+            --text-primary: #1A2332;
+            --text-secondary: #6B7B8D;
+            --border: #E0E4EA;
+            --success: #10B981;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --font-main: 'Inter', 'Noto Sans SC', sans-serif;
         }
 
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            min-height: 100vh;
+            background: var(--bg-body);
+            font-family: var(--font-main);
+            color: var(--text-primary);
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
-            justify-content: center;
-            padding: 20px;
-            color: #333
+            flex-direction: column;
+            gap: 24px;
         }
 
-        .wb {
-            width: 980px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            background: #fff;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, .1);
-            align-content: start
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
-        .sec {
-            border: 1px solid #edf2f7;
-            padding: 20px;
-            border-radius: 12px
+        header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
         }
 
-        h1 {
-            grid-column: span 2;
-            text-align: center;
-            color: #2d3748;
-            margin-bottom: 0;
-            font-size: 1.6rem
-        }
-
-        h1 small {
-            font-weight: normal;
-            color: #aaa;
-            font-size: .8rem
-        }
-
-        h2 {
-            margin: 0 0 16px;
-            color: #2d3748;
-            font-size: 1rem;
-            border-bottom: 3px solid var(--c);
-            padding-bottom: 8px
-        }
-
-        .cg {
-            margin-bottom: 16px
-        }
-
-        label {
-            display: block;
+        header .version {
             font-size: 12px;
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 6px
-        }
-
-        input[type=range] {
-            width: 100%;
-            accent-color: var(--c)
-        }
-
-        input[type=text],
-        input[type=color],
-        input[type=number] {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 13px
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            padding: 8px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 11px;
-            resize: vertical
-        }
-
-        .vd {
-            float: right;
-            font-weight: bold;
-            color: #00b38f;
-            background: #e6fffa;
+            vertical-align: middle;
+            background: var(--accent);
+            color: white;
             padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px
+            border-radius: 20px;
+            margin-left: 10px;
         }
 
-        .hint {
-            font-size: 11px;
-            color: #a0aec0;
-            margin-top: 3px
+        /* Top Grid */
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .panel h2 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: #F0F7FF;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .upload-text {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-label);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            background: #FAFBFC;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #FFF;
+        }
+
+        /* Data Section */
+        .data-section {
+            width: 100%;
+            position: relative;
+        }
+
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
         }
 
         .btn {
-            padding: 14px;
-            background: var(--c);
-            color: #003d33;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all .3s;
-            width: 100%
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 255, 204, .4)
+        .btn-primary {
+            background: var(--accent);
+            color: white;
         }
 
-        .btn-sec {
-            background: #edf2f7;
-            color: #4a5568
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(74, 158, 235, 0.3);
         }
 
-        .btn-sec:hover {
-            background: #e2e8f0;
-            box-shadow: none;
-            transform: none
+        .btn-outline {
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text-secondary);
         }
 
-        .full {
-            grid-column: span 2
+        .btn-outline:hover {
+            background: #F8F9FA;
+            border-color: var(--text-secondary);
         }
 
-        .preview-table {
+        /* Table */
+        .table-container {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
-            margin-top: 8px
+            table-layout: fixed;
         }
 
-        .preview-table th {
-            background: #f7fafc;
-            padding: 6px;
+        th {
+            background: #F8F9FA;
+            padding: 12px 16px;
             text-align: left;
-            border-bottom: 2px solid #e2e8f0
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
 
-        .preview-table td {
-            padding: 5px 6px;
-            border-bottom: 1px solid #f0f0f0
-        }
-
-        .status {
-            text-align: center;
+        td {
+            padding: 10px 16px;
             font-size: 14px;
-            padding: 8px;
-            color: #666
+            border-bottom: 1px solid #F0F2F5;
+            color: var(--text-primary);
+            transition: background 0.1s;
         }
 
-        .stats-bar {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 8px
+        tr:hover td {
+            background: #FBFDFF;
         }
 
-        .stat {
-            background: #f7fafc;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px
+        /* Editable Cells */
+        td[contenteditable="true"] {
+            outline: none;
+            cursor: text;
         }
 
-        .stat b {
-            color: #00b38f
+        td[contenteditable="true"]:focus {
+            background: #FFF !important;
+            box-shadow: inset 0 0 0 2px var(--accent);
+        }
+
+        /* Column widths */
+        .col-word {
+            width: 10%;
+        }
+
+        .col-pinyin {
+            width: 20%;
+        }
+
+        .col-radical {
+            width: 10%;
+        }
+
+        .col-words {
+            width: 60%;
+        }
+
+        /* Loading Overlay */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E0E4EA;
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: #1F2937;
+            color: white;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 
 <body>
-    <div class="wb">
-        <h1>字跑大师 — 生产力工作台 <small>v2.0</small></h1>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p id="loader-text">正在识别数据...</p>
+    </div>
 
-        <div class="sec">
-            <h2>📂 数据导入</h2>
-            <div class="cg">
-                <label>1. 单元生字 CSV 文件</label>
-                <input type="file" id="csvFile" accept=".csv">
-                <p class="hint">需包含 word, pinyin 列</p>
-            </div>
-            <div id="csv-preview"></div>
-            <div class="cg">
-                <label>单元标题</label>
-                <input type="text" id="unitTitle" value="人教版四年级上册·第一单元">
-            </div>
-            <div class="cg">
-                <label>玩家昵称</label>
-                <input type="text" id="nickname" maxlength="16" value="贝贝">
-                <p class="hint" id="nick-hint">2/16 字符</p>
-            </div>
-            <div class="cg">
-                <label>主题色</label>
-                <input type="color" id="themeColor" value="#00ffcc">
-            </div>
-        </div>
+    <div class="toast" id="toast">已复原单元格式</div>
 
-        <div class="sec">
-            <h2>⚙️ 游戏参数</h2>
-            <div class="cg">
-                <label>单字关时限 (秒) <span class="vd" id="v-lt">40</span></label>
-                <input type="range" id="p-lt" min="15" max="120" step="5" value="40">
+    <div class="container">
+        <header>
+            <h1>字跑大师数据生成平台 <span class="version">v3.5</span></h1>
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="location.reload()">清空所有数据</button>
             </div>
-            <div class="cg">
-                <label>初始生命值 <span class="vd" id="v-lives">3</span></label>
-                <input type="range" id="p-lives" min="1" max="10" step="0.5" value="3">
-            </div>
-            <div class="cg">
-                <label>通关正确数 <span class="vd" id="v-win">9</span></label>
-                <input type="range" id="p-win" min="3" max="20" step="1" value="9">
-            </div>
-            <div class="cg">
-                <label>连击通关数 <span class="vd" id="v-streak">4</span></label>
-                <input type="range" id="p-streak" min="2" max="10" step="1" value="4">
-            </div>
-            <h2 style="margin-top:16px">📈 难度曲线</h2>
-            <div class="cg">
-                <label>起始速度 <span class="vd" id="v-ss">2</span></label>
-                <input type="range" id="p-ss" min="1" max="8" step="0.5" value="2">
-            </div>
-            <div class="cg">
-                <label>终止速度 <span class="vd" id="v-se">6</span></label>
-                <input type="range" id="p-se" min="2" max="15" step="0.5" value="6">
-            </div>
-            <div class="cg">
-                <label>生成间隔起始 (ms) <span class="vd" id="v-is">2000</span></label>
-                <input type="range" id="p-is" min="500" max="4000" step="100" value="2000">
-            </div>
-            <div class="cg">
-                <label>生成间隔终止 (ms) <span class="vd" id="v-ie">800</span></label>
-                <input type="range" id="p-ie" min="200" max="2000" step="100" value="800">
-            </div>
-        </div>
+        </header>
 
-        <div class="full">
-            <button class="btn" id="buildBtn">🚀 生成独立游戏HTML文件</button>
-            <div class="status" id="status">请先上传 CSV 数据文件</div>
-        </div>
+        <main class="top-grid">
+            <section class="panel">
+                <h2>📑 数据上传</h2>
+                <div class="upload-area" id="upload-dropzone" onclick="document.getElementById('file-input').click()">
+                    <span class="upload-icon">📁</span>
+                    <div class="upload-text">点击或拖拽文件到这里</div>
+                    <div class="upload-hint">支持 .pdf, .txt, .csv 格式文件</div>
+                    <input type="file" id="file-input" accept=".pdf,.txt,.csv">
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>📋 单元信息</h2>
+                <div class="form-group">
+                    <label class="form-label">单元标题</label>
+                    <input type="text" id="unit-title" class="form-input" placeholder="例如：人教版四年级上册·第一单元">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">年级/难度标识</label>
+                    <input type="text" id="grade-info" class="form-input" placeholder="例如：小学四年级">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                    <div
+                        style="flex:1; background: #F8F9FA; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="font-size:11px; color: var(--text-secondary);">生字总数</div>
+                        <div id="stat-count" style="font-size:20px; font-weight:700;">0</div>
+                    </div>
+                    <div
+                        style="flex:1; background: #F8F9FA; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="font-size:11px; color: var(--text-secondary);">解析状态</div>
+                        <div id="stat-status" style="font-size:14px; font-weight:600; color: var(--text-secondary);">待上传
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <section class="data-section">
+            <div class="data-header">
+                <h2>🛠 数据工作区</h2>
+                <div class="btn-group">
+                    <button class="btn btn-outline" onclick="autoCorrect()">✨ 一键校对</button>
+                    <button class="btn btn-primary" onclick="exportData()">📥 导出 CSV 分享文件</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-word">生字</th>
+                            <th class="col-pinyin">拼音</th>
+                            <th class="col-radical">部首</th>
+                            <th class="col-words">课本标准词组</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-tbody">
+                        <!-- Rows will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="empty-hint"
+                style="text-align:center; padding: 60px; color: #aaa; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px;">
+                暂无数据，请上传文件开始生成
+            </div>
+        </section>
     </div>
 
     <script>
-        // 滑块实时更新
-        const sliders = [
-            ['lt', 'v-lt'], ['lives', 'v-lives'], ['win', 'v-win'], ['streak', 'v-streak'],
-            ['ss', 'v-ss'], ['se', 'v-se'], ['is', 'v-is'], ['ie', 'v-ie']
-        ];
-        sliders.forEach(([id, vid]) => {
-            const el = document.getElementById('p-' + id);
-            const disp = document.getElementById(vid);
-            el.oninput = () => { disp.textContent = el.value; };
+        // PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+        // State
+        let currentData = []; // { word, pinyin, radical, words_std }
+        let rawText = "";
+
+        // Elements
+        const dropzone = document.getElementById('upload-dropzone');
+        const fileInput = document.getElementById('file-input');
+        const loader = document.getElementById('loader');
+        const tbody = document.getElementById('data-tbody');
+        const emptyHint = document.getElementById('empty-hint');
+
+        // Drag and Drop
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
         });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-        // 昵称长度
-        const nickEl = document.getElementById('nickname');
-        const nickHint = document.getElementById('nick-hint');
-        nickEl.oninput = () => {
-            const len = nickEl.value.replace(/[^\x00-\xff]/g, '00').length;
-            nickHint.textContent = `${len}/16 字符`;
-            nickHint.style.color = len > 16 ? '#e53e3e' : '#a0aec0';
-        };
+        async function handleFiles(files) {
+            const file = files[0];
+            if (!file) return;
 
-        // CSV 解析
-        let csvData = null;
-        function csvToJson(csv) {
-            const lines = csv.trim().split(/\r?\n/);
-            const headers = lines[0].replace(/^\uFEFF/, '').split(',').map(h => h.trim());
-            return lines.slice(1).filter(l => l.trim()).map(line => {
-                const vals = line.split(',');
-                return headers.reduce((obj, h, i) => { obj[h] = vals[i] ? vals[i].trim() : ''; return obj; }, {});
+            showLoader('正在读取文件...');
+            rawText = "";
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            try {
+                if (ext === 'pdf') {
+                    rawText = await parsePDF(file);
+                } else if (ext === 'txt' || ext === 'csv') {
+                    rawText = await file.text();
+                } else {
+                    throw new Error("不支持的文件格式");
+                }
+
+                // Auto fill unit title
+                document.getElementById('unit-title').value = file.name.replace(/\.[^/.]+$/, "");
+
+                processRawText(rawText);
+                renderTable();
+                hideLoader();
+                showToast("✅ 解析完成");
+            } catch (err) {
+                console.error(err);
+                hideLoader();
+                alert("读取失败: " + err.message);
+            }
+        }
+
+        async function parsePDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(" ");
+            }
+            return text;
+        }
+
+        function processRawText(text) {
+            // Extract Chinese characters only
+            const hanziList = text.match(/[\u4e00-\u9fa5]/g) || [];
+            if (hanziList.length === 0) {
+                currentData = [];
+                return;
+            }
+
+            // Deduplicate
+            const uniqueHanzi = Array.from(new Set(hanziList));
+
+            showLoader(`正在生成生字属性 (${uniqueHanzi.length} 个)...`);
+
+            currentData = uniqueHanzi.map(char => {
+                // Use pinyin-pro for pinyin
+                const py = pinyinPro.pinyin(char, { toneType: 'symbol' });
+
+                // Extract words from context
+                const words = extractContextWords(char, text);
+
+                return {
+                    word: char,
+                    pinyin: py,
+                    radical: '—', // Placeholder for radical
+                    words_std: words.join("、")
+                };
+            });
+
+            updateStats();
+        }
+
+        function extractContextWords(char, text) {
+            const results = new Set();
+            // Regex to find words containing the character (2-4 characters long)
+            const regex = new RegExp(`[\\u4e00-\\u9fa5]{0,2}${char}[\\u4e00-\\u9fa5]{0,2}`, 'g');
+            const matches = text.match(regex) || [];
+
+            matches.forEach(m => {
+                if (m.length >= 2) results.add(m);
+            });
+
+            // Return top 3 unique words
+            return Array.from(results).slice(0, 3);
+        }
+
+        function renderTable() {
+            tbody.innerHTML = "";
+            if (currentData.length === 0) {
+                emptyHint.style.display = "block";
+                return;
+            }
+            emptyHint.style.display = "none";
+
+            currentData.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="col-word">${item.word}</td>
+                    <td class="col-pinyin" contenteditable="true" onblur="updateField(${index}, 'pinyin', this.innerText)">${item.pinyin}</td>
+                    <td class="col-radical" contenteditable="true" onblur="updateField(${index}, 'radical', this.innerText)">${item.radical}</td>
+                    <td class="col-words" contenteditable="true" onblur="updateField(${index}, 'words_std', this.innerText)">${item.words_std}</td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
-        document.getElementById('csvFile').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const text = await file.text();
-            csvData = csvToJson(text);
-            const preview = document.getElementById('csv-preview');
-            const pinyinSet = new Set(csvData.map(d => d.pinyin));
+        function updateField(index, field, value) {
+            if (currentData[index]) {
+                currentData[index][field] = value.trim();
+            }
+        }
 
-            preview.innerHTML = `
-        <div class="stats-bar">
-            <div class="stat">生字数：<b>${csvData.length}</b></div>
-            <div class="stat">拼音数：<b>${pinyinSet.size}</b></div>
-            <div class="stat">预计关卡：<b>${pinyinSet.size}</b></div>
-            <div class="stat">预计时长：<b>${Math.ceil(pinyinSet.size * 40 / 60)}分钟</b></div>
-        </div>
-        <table class="preview-table">
-            <tr><th>字</th><th>拼音</th><th>部首</th><th>常用词</th></tr>
-            ${csvData.slice(0, 10).map(d => `<tr><td>${d.word}</td><td>${d.pinyin}</td><td>${d.radical || ''}</td><td>${d.words_std || ''}</td></tr>`).join('')}
-            ${csvData.length > 10 ? `<tr><td colspan="4" style="color:#aaa;text-align:center">...共 ${csvData.length} 条</td></tr>` : ''}
-        </table>`;
-            document.getElementById('status').textContent = `✅ 已加载 ${csvData.length} 个生字，${pinyinSet.size} 个拼音`;
-        });
+        /**
+         * 一键校对
+         * 目前主要逻辑：识别文本中的多音字环境，修正读音
+         */
+        async function autoCorrect() {
+            showLoader("正在校对数据...");
 
-        // 游戏模板（内嵌）
-        const GAME_TEMPLATE = `TEMPLATE_PLACEHOLDER`;
+            // 模拟延迟增加沉浸感，同时执行简单的多音字校对
+            currentData.forEach(item => {
+                // 简单的多音字查找（如果该字在 text 中形成了特定词组，尝试用词组注音）
+                if (item.words_std) {
+                    const firstWord = item.words_std.split('、')[0];
+                    if (firstWord) {
+                        const fullPinyin = pinyinPro.pinyin(firstWord, { toneType: 'symbol', type: 'array' });
+                        // 找到该字在词组中的索引位置
+                        const charIndex = firstWord.indexOf(item.word);
+                        if (charIndex !== -1 && fullPinyin[charIndex]) {
+                            item.pinyin = fullPinyin[charIndex];
+                        }
+                    }
+                }
+            });
 
-        // 生成
-        document.getElementById('buildBtn').onclick = async () => {
-            if (!csvData || csvData.length === 0) {
-                alert('请先上传 CSV 数据文件！');
+            renderTable();
+            setTimeout(() => {
+                hideLoader();
+                showToast("✨ 一键校对待完善，已基于上下文优化读音");
+            }, 800);
+        }
+
+        function exportData() {
+            if (currentData.length === 0) {
+                alert("没有可导出的数据");
                 return;
             }
-            const status = document.getElementById('status');
-            status.textContent = '正在生成...';
 
-            try {
-                // 读取 index.html 模板 - 尝试 fetch，如果失败则使用文件上传
-                let templateHtml = '';
-                try {
-                    const resp = await fetch('index.html');
-                    if (resp.ok) templateHtml = await resp.text();
-                    else throw new Error('fetch failed');
-                } catch (e) {
-                    // 无法 fetch，提示用户
-                    alert('请确保 workbench.html 与 index.html 在同一目录下，或通过本地服务器打开');
-                    status.textContent = '❌ 无法读取游戏模板 index.html';
-                    return;
-                }
+            const headers = ["word", "pinyin", "radical", "words_std"];
+            const csvRows = [];
+            csvRows.push(headers.join(","));
 
-                // 构造配置
-                const config = {
-                    metadata: {
-                        version: "2.0.0",
-                        unitTitle: document.getElementById('unitTitle').value,
-                        playerName: document.getElementById('nickname').value || '贝贝'
-                    },
-                    rules: {
-                        levelTime: parseInt(document.getElementById('p-lt').value),
-                        winCorrectTotal: parseInt(document.getElementById('p-win').value),
-                        winCorrectStreak: parseInt(document.getElementById('p-streak').value),
-                        failWrongStreak: 4,
-                        initLives: parseFloat(document.getElementById('p-lives').value),
-                        obstacleDamage: 1,
-                        wrongDamage: 0.5
-                    },
-                    difficulty: {
-                        speedStart: parseFloat(document.getElementById('p-ss').value),
-                        speedEnd: parseFloat(document.getElementById('p-se').value),
-                        intervalStart: parseInt(document.getElementById('p-is').value),
-                        intervalEnd: parseInt(document.getElementById('p-ie').value),
-                        obstacleStart: 0.10, obstacleEnd: 0.40,
-                        wrongStart: 0.20, wrongEnd: 0.45,
-                        correctStart: 0.70, correctEnd: 0.15
-                    },
-                    scoring: {
-                        correctBase: 100, comboMax: 5,
-                        dodgeObstacle: 20, levelClear: 500,
-                        timeBonus: 10, streakBonus: 200
-                    },
-                    levels: [
-                        { rank: "识字新兵", threshold: 0 }, { rank: "拼音学徒", threshold: 1000 },
-                        { rank: "汉字猎手", threshold: 3000 }, { rank: "文字侠客", threshold: 6000 },
-                        { rank: "字跑大师", threshold: 10000 }, { rank: "传奇字神", threshold: 20000 }
-                    ],
-                    physics: { tracksX: [0.18, 0.50, 0.82], playerY: 0.82, vanishY: 0.20, gravity: 800 },
-                    ui: {
-                        themeColor: document.getElementById('themeColor').value,
-                        isInvincible: false
-                    },
-                    dataSource: {
-                        offlineData: csvData.map(d => ({ word: d.word, pinyin: d.pinyin }))
-                    }
-                };
+            currentData.forEach(item => {
+                const row = headers.map(h => {
+                    const escaped = ('' + item[h]).replace(/"/g, '""');
+                    return `"${escaped}"`;
+                });
+                csvRows.push(row.join(","));
+            });
 
-                // 替换配置块
-                const configRegex = /window\.WRM_CONFIG\s*=\s*\{[\s\S]*?\};\s*\n\/\/ =+ 配置块结束/;
-                const configStr = `window.WRM_CONFIG = ${JSON.stringify(config, null, 4)};\n// ========== 配置块结束`;
+            const csvString = csvRows.join("\n");
+            const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const unitName = document.getElementById('unit-title').value || "未命名单元";
 
-                if (!configRegex.test(templateHtml)) {
-                    throw new Error('模板中未找到 WRM_CONFIG 配置块');
-                }
+            a.href = url;
+            a.download = `${unitName}_生词表.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
-                const finalHtml = templateHtml.replace(configRegex, configStr);
+            showToast("📥 导出成功！请在控制面板上传此文件。");
+        }
 
-                // 下载
-                const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
-                const name = `字跑大师_${config.metadata.unitTitle}_${config.metadata.playerName}.html`;
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
+        function updateStats() {
+            document.getElementById('stat-count').textContent = currentData.length;
+            document.getElementById('stat-status').textContent = "已解析";
+            document.getElementById('stat-status').style.color = "var(--success)";
+        }
 
-                status.innerHTML = `<span style="color:green">🎉 已生成：${name}</span>`;
-            } catch (err) {
-                console.error(err);
-                status.innerHTML = `<span style="color:red">❌ ${err.message}</span>`;
-            }
-        };
+        function showLoader(text) {
+            document.getElementById('loader-text').textContent = text;
+            loader.style.display = "flex";
+        }
+
+        function hideLoader() {
+            loader.style.display = "none";
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = "block";
+            setTimeout(() => t.style.display = "none", 3000);
+        }
     </script>
 </body>
 
