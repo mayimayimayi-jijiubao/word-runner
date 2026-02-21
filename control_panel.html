@@ -1232,10 +1232,10 @@
                 const baseName = file.name.replace(/\.csv$/i, '');
                 area.classList.add('has-file');
                 nameEl.textContent = '✓ ' + file.name + '（' + data.length + ' 条数据）';
-                if (!unitNameInput.value) {
-                    unitNameInput.value = baseName;
-                    CFG.unit_settings.unitName = baseName;
-                }
+
+                // 自动填入并更新单元名称
+                unitNameInput.value = baseName;
+                CFG.unit_settings.unitName = baseName;
             };
             reader.readAsText(file);
         });
