@@ -203,49 +203,58 @@
         #start-screen {
             position: fixed;
             inset: 0;
-            background-color: #2d3436;
-            background-image: radial-gradient(circle at center, rgba(50, 50, 50, 0.5) 0%, rgba(0, 0, 0, 0.5) 100%);
-            /* Pattern would be better, but simple dark grey works with the theme */
+            background-color: #F5F0E8;
             z-index: 100;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #fff;
-            font-family: "Microsoft YaHei", sans-serif
+            color: #2d3436;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
         }
 
         #start-screen h1 {
-            font-size: 64px;
-            color: #EBE7DD;
-            /* Runway Color */
-            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
-            margin-bottom: 8px;
-            letter-spacing: 6px;
-            font-weight: bold;
+            font-size: 72px;
+            color: #2d3436;
+            margin-bottom: 12px;
+            letter-spacing: 8px;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         #start-screen .sub {
-            color: #b2bec3;
-            font-size: 14px;
-            margin-bottom: 60px
+            color: #636e72;
+            font-size: 16px;
+            letter-spacing: 4px;
+            margin-bottom: 80px;
+            text-transform: uppercase;
         }
 
         #start-screen button {
-            padding: 16px 56px;
+            padding: 16px 64px;
             font-size: 24px;
             /* Sticky Note Style */
             background-color: #ffeaa7;
-            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
+            background-image: repeating-linear-gradient(transparent, transparent 19px, rgba(0, 0, 0, 0.05) 20px);
             border: 1px solid #e0cba0;
             border-radius: 2px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 900;
             color: #2d3436;
-            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
-            transition: transform .2s, box-shadow .2s;
-            transform: rotate(-2deg);
-            font-family: "Microsoft YaHei", sans-serif;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            transform: rotate(-1.5deg);
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        #start-screen button:hover {
+            transform: scale(1.05) rotate(0deg);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #start-screen button:active {
+            transform: scale(0.98);
         }
 
         #start-screen button:hover {
@@ -339,6 +348,257 @@
         #level-clear button:hover {
             transform: scale(1.05) rotate(0deg);
         }
+
+        /* ═══ 任务看板 Task Board ═══ */
+        #task-board {
+            position: fixed;
+            inset: 0;
+            background: #F5F0E8;
+            color-scheme: light;
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+        }
+
+        #task-board.show {
+            display: flex;
+        }
+
+        .tb-header {
+            text-align: center;
+            padding: 24px 20px 0;
+            flex-shrink: 0;
+        }
+
+        .tb-header h1 {
+            font-size: 22px;
+            color: #2d3436;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+
+        .tb-header .tb-summary {
+            font-size: 14px;
+            color: #636e72;
+            line-height: 1.8;
+        }
+
+        .tb-header .tb-summary em {
+            font-style: normal;
+            font-weight: 700;
+            color: #d63031;
+        }
+
+        .tb-grid-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 14px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* ─── Flashcard ─── */
+        .fc-container {
+            perspective: 800px;
+            height: 160px;
+            cursor: pointer;
+            /* 确保鼠标事件由 container 接收，不被 3D 子元素拦截 */
+        }
+
+        .fc-inner,
+        .fc-front,
+        .fc-back {
+            pointer-events: none;
+        }
+
+        .fc-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+            will-change: transform;
+        }
+
+        .fc-container.flipped .fc-inner {
+            transform: rotateY(180deg);
+        }
+
+        .fc-front,
+        .fc-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 8px;
+            background: #EDEAE3;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .fc-back {
+            transform: rotateY(180deg);
+            background: #EDEAE3;
+        }
+
+        /* Front */
+        .fc-front .fc-word {
+            font-size: 52px;
+            font-weight: 900;
+            color: #1a1a1a;
+            line-height: 1.1;
+        }
+
+        .fc-front .fc-pinyin {
+            font-size: 16px;
+            color: #4a9eeb;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        /* Back */
+        .fc-back .fc-word-back {
+            font-size: 36px;
+            font-weight: 900;
+            color: #c0392b;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+
+        .fc-back .fc-radical {
+            font-size: 13px;
+            color: #636e72;
+            margin-bottom: 8px;
+        }
+
+        .fc-back .fc-radical span {
+            color: #c0392b;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .fc-back .fc-words-list {
+            font-size: 15px;
+            color: #2d3436;
+            text-align: center;
+            line-height: 1.6;
+            word-break: break-all;
+        }
+
+        .fc-back .fc-words-list .hl {
+            color: #c0392b;
+            font-weight: 700;
+        }
+
+        .tb-footer {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding: 16px 20px 28px;
+            flex-shrink: 0;
+        }
+
+        .tb-footer button {
+            padding: 12px 36px;
+            font-size: 18px;
+            font-weight: 900;
+            border: 1px solid #e0cba0;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            background-image: repeating-linear-gradient(transparent, transparent 17px, rgba(0, 0, 0, 0.04) 18px);
+            box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tb-btn-s2w {
+            background-color: #fdcb6e;
+            /* Deep Yellow */
+            color: #2d3436;
+            transform: rotate(-1deg);
+        }
+
+        .tb-btn-s2w:hover {
+            transform: scale(1.05) rotate(0deg);
+            background-color: #ffb142;
+        }
+
+        .tb-btn-w2s {
+            background-color: #ffeaa7;
+            /* Light Yellow */
+            color: #2d3436;
+            transform: rotate(1.2deg);
+        }
+
+        .tb-btn-w2s:hover {
+            transform: scale(1.05) rotate(0deg);
+            background-color: #ffe082;
+        }
+
+        @media (max-width: 480px) {
+            .tb-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .fc-container {
+                height: 140px;
+            }
+
+            .fc-front .fc-word {
+                font-size: 42px;
+            }
+
+            .fc-back .fc-word-back {
+                font-size: 28px;
+            }
+
+            .tb-footer button {
+                padding: 10px 24px;
+                font-size: 16px;
+            }
+
+            .tb-header h1 {
+                font-size: 18px;
+            }
+        }
+
+        /* ═══ 任务看板 样式修正 ═══ */
+        .fc-back .fc-radical {
+            margin-bottom: 10px !important;
+        }
+
+        .fc-back .fc-radical span {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #C0392B !important;
+            margin-left: 4px !important;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .fc-back .fc-words-list {
+            line-height: 1.6 !important;
+        }
+
+        .fc-back .fc-words-list .hl {
+            color: #C0392B !important;
+            font-weight: 700 !important;
+        }
     </style>
 </head>
 
@@ -346,7 +606,22 @@
     <div id="start-screen">
         <h1>字跑大师</h1>
         <div class="sub">Word Runner Master</div>
-        <button id="start-btn">开始游戏</button>
+        <button id="start-btn">开始学习</button>
+    </div>
+
+    <!-- ═══ 任务看板 ═══ -->
+    <div id="task-board">
+        <div class="tb-header">
+            <h1 id="tb-title">单元信息</h1>
+            <p class="tb-summary" id="tb-summary"></p>
+        </div>
+        <div class="tb-grid-wrap">
+            <div class="tb-grid" id="tb-grid"></div>
+        </div>
+        <div class="tb-footer">
+            <button class="tb-btn-s2w" id="tb-btn-s2w">音找字</button>
+            <button class="tb-btn-w2s" id="tb-btn-w2s">字找音</button>
+        </div>
     </div>
     <div id="wrap">
         <canvas id="gc"></canvas>
@@ -444,23 +719,57 @@
             ui: { themeColor: "#00ffcc", isInvincible: false },
             dataSource: {
                 offlineData: [
-                    { "word": "潮", "pinyin": "cháo" }, { "word": "盐", "pinyin": "yán" }, { "word": "薄", "pinyin": "bó" },
-                    { "word": "屹", "pinyin": "yì" }, { "word": "昂", "pinyin": "áng" }, { "word": "鼎", "pinyin": "dǐng" },
-                    { "word": "沸", "pinyin": "fèi" }, { "word": "据", "pinyin": "jù" }, { "word": "堤", "pinyin": "dī" },
-                    { "word": "阔", "pinyin": "kuò" }, { "word": "盼", "pinyin": "pàn" }, { "word": "滚", "pinyin": "gǔn" },
-                    { "word": "顿", "pinyin": "dùn" }, { "word": "逐", "pinyin": "zhú" }, { "word": "渐", "pinyin": "jiàn" },
-                    { "word": "堵", "pinyin": "dǔ" }, { "word": "犹", "pinyin": "yóu" }, { "word": "贯", "pinyin": "guàn" },
-                    { "word": "浩", "pinyin": "hào" }, { "word": "崩", "pinyin": "bēng" }, { "word": "震", "pinyin": "zhèn" },
-                    { "word": "霎", "pinyin": "shà" }, { "word": "余", "pinyin": "yú" }, { "word": "淘", "pinyin": "táo" },
-                    { "word": "牵", "pinyin": "qiān" }, { "word": "鹅", "pinyin": "é" }, { "word": "卵", "pinyin": "luǎn" },
-                    { "word": "坑", "pinyin": "kēng" }, { "word": "洼", "pinyin": "wā" }, { "word": "填", "pinyin": "tián" },
-                    { "word": "庄", "pinyin": "zhuāng" }, { "word": "稼", "pinyin": "jià" }, { "word": "俗", "pinyin": "sú" },
-                    { "word": "跃", "pinyin": "yuè" }, { "word": "葡", "pinyin": "pú" }, { "word": "萄", "pinyin": "táo" },
-                    { "word": "稻", "pinyin": "dào" }, { "word": "熟", "pinyin": "shú" }, { "word": "穗", "pinyin": "suì" },
-                    { "word": "镀", "pinyin": "dù" }, { "word": "埂", "pinyin": "gěng" }, { "word": "烁", "pinyin": "shuò" },
-                    { "word": "巢", "pinyin": "cháo" }, { "word": "苇", "pinyin": "wěi" }, { "word": "罗", "pinyin": "luó" },
-                    { "word": "眠", "pinyin": "mián" }, { "word": "霸", "pinyin": "bà" }, { "word": "占", "pinyin": "zhàn" },
-                    { "word": "昧", "pinyin": "mèi" }, { "word": "坠", "pinyin": "zhuì" }, { "word": "怀", "pinyin": "huái" }
+                    { "word": "潮", "pinyin": "cháo", "radical": "氵", "words_std": "观潮、潮水" },
+                    { "word": "盐", "pinyin": "yán", "radical": "皿", "words_std": "盐官、食盐" },
+                    { "word": "薄", "pinyin": "bó", "radical": "艹", "words_std": "薄雾" },
+                    { "word": "屹", "pinyin": "yì", "radical": "山", "words_std": "屹立" },
+                    { "word": "昂", "pinyin": "áng", "radical": "日", "words_std": "昂首" },
+                    { "word": "鼎", "pinyin": "dǐng", "radical": "鼎", "words_std": "鼎沸" },
+                    { "word": "沸", "pinyin": "fèi", "radical": "氵", "words_std": "沸腾" },
+                    { "word": "据", "pinyin": "jù", "radical": "扌", "words_std": "据说、证据" },
+                    { "word": "堤", "pinyin": "dī", "radical": "土", "words_std": "大堤、河堤" },
+                    { "word": "阔", "pinyin": "kuò", "radical": "门", "words_std": "宽阔、广阔" },
+                    { "word": "盼", "pinyin": "pàn", "radical": "目", "words_std": "盼望" },
+                    { "word": "滚", "pinyin": "gǔn", "radical": "氵", "words_std": "滚动、翻滚" },
+                    { "word": "顿", "pinyin": "dùn", "radical": "页", "words_std": "顿时" },
+                    { "word": "逐", "pinyin": "zhú", "radical": "辶", "words_std": "逐渐" },
+                    { "word": "渐", "pinyin": "jiàn", "radical": "氵", "words_std": "逐渐" },
+                    { "word": "堵", "pinyin": "dǔ", "radical": "土", "words_std": "一堵、堵塞" },
+                    { "word": "犹", "pinyin": "yóu", "radical": "犭", "words_std": "犹如" },
+                    { "word": "贯", "pinyin": "guàn", "radical": "贝", "words_std": "横贯" },
+                    { "word": "浩", "pinyin": "hào", "radical": "氵", "words_std": "浩荡" },
+                    { "word": "崩", "pinyin": "bēng", "radical": "山", "words_std": "崩裂、山崩地裂" },
+                    { "word": "震", "pinyin": "zhèn", "radical": "雨", "words_std": "震动、地震" },
+                    { "word": "霎", "pinyin": "shà", "radical": "雨", "words_std": "霎时" },
+                    { "word": "余", "pinyin": "yú", "radical": "人", "words_std": "余波、剩余" },
+                    { "word": "淘", "pinyin": "táo", "radical": "氵", "words_std": "淘洗、浪淘沙" },
+                    { "word": "牵", "pinyin": "qiān", "radical": "牛", "words_std": "牵手、牵着" },
+                    { "word": "鹅", "pinyin": "é", "radical": "鸟", "words_std": "鹅卵石" },
+                    { "word": "卵", "pinyin": "luǎn", "radical": "卩", "words_std": "鹅卵石" },
+                    { "word": "坑", "pinyin": "kēng", "radical": "土", "words_std": "坑洼、坑坑洼洼" },
+                    { "word": "洼", "pinyin": "wā", "radical": "氵", "words_std": "坑洼、坑坑洼洼" },
+                    { "word": "填", "pinyin": "tián", "radical": "土", "words_std": "填充、填上" },
+                    { "word": "庄", "pinyin": "zhuāng", "radical": "广", "words_std": "庄稼" },
+                    { "word": "稼", "pinyin": "jià", "radical": "禾", "words_std": "庄稼" },
+                    { "word": "俗", "pinyin": "sú", "radical": "亻", "words_std": "风俗" },
+                    { "word": "跃", "pinyin": "yuè", "radical": "足", "words_std": "跃出、跳跃" },
+                    { "word": "葡", "pinyin": "pú", "radical": "艹", "words_std": "葡萄" },
+                    { "word": "萄", "pinyin": "táo", "radical": "艹", "words_std": "葡萄" },
+                    { "word": "稻", "pinyin": "dào", "radical": "禾", "words_std": "水稻" },
+                    { "word": "熟", "pinyin": "shú", "radical": "灬", "words_std": "成熟、熟悉" },
+                    { "word": "穗", "pinyin": "suì", "radical": "禾", "words_std": "稻穗" },
+                    { "word": "镀", "pinyin": "dù", "radical": "钅", "words_std": "镀亮" },
+                    { "word": "埂", "pinyin": "gěng", "radical": "土", "words_std": "田埂" },
+                    { "word": "烁", "pinyin": "shuò", "radical": "火", "words_std": "闪烁" },
+                    { "word": "巢", "pinyin": "cháo", "radical": "巛", "words_std": "归巢" },
+                    { "word": "苇", "pinyin": "wěi", "radical": "艹", "words_std": "芦苇" },
+                    { "word": "罗", "pinyin": "luó", "radical": "罒", "words_std": "剪秋罗" },
+                    { "word": "眠", "pinyin": "mián", "radical": "目", "words_std": "睡眠、冬眠" },
+                    { "word": "霸", "pinyin": "bà", "radical": "雨", "words_std": "霸占" },
+                    { "word": "占", "pinyin": "zhàn", "radical": "卜", "words_std": "霸占、占据" },
+                    { "word": "昧", "pinyin": "mèi", "radical": "日", "words_std": "半明半昧" },
+                    { "word": "坠", "pinyin": "zhuì", "radical": "土", "words_std": "摇摇欲坠" },
+                    { "word": "怀", "pinyin": "huái", "radical": "忄", "words_std": "怀抱" }
                 ]
             }
         };
@@ -505,26 +814,125 @@
                 g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + decay);
                 o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + decay);
             }
+            // ─── 语音系统 ───
+            // 声母→中文注音映射，避免 TTS 把拉丁字母按英文读出
+            const INITIAL_PHONETIC = {
+                'b': '波', 'p': '坡', 'm': '摸', 'f': '佛',
+                'd': '得', 't': '特', 'n': '呢', 'l': '勒',
+                'g': '哥', 'k': '科', 'h': '喝',
+                'j': '基', 'q': '七', 'x': '西',
+                'zh': '知', 'ch': '吃', 'sh': '诗', 'r': '日',
+                'z': '资', 'c': '次', 's': '思',
+                'y': '衣', 'w': '乌'
+            };
+
+            function decomposePinyin(pinyin) {
+                const whole = ['zhi', 'chi', 'shi', 'ri', 'zi', 'ci', 'si', 'yi', 'wu', 'yu', 'ye', 'yue', 'yuan', 'yin', 'yun', 'ying'];
+                const base = pinyin.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                if (whole.includes(base)) return { isWhole: true, full: pinyin };
+                const initialMatch = pinyin.match(/^(zh|ch|sh|b|p|m|f|d|t|n|l|g|k|h|j|q|x|r|z|c|s|y|w)/i);
+                if (initialMatch) {
+                    const initial = initialMatch[0].toLowerCase();
+                    const final = pinyin.substring(initial.length);
+                    if (final) {
+                        // 用中文注音代替拉丁字母声母
+                        const initialPhonetic = INITIAL_PHONETIC[initial] || initial;
+                        return { isWhole: false, initial, initialPhonetic, final, full: pinyin };
+                    }
+                }
+                return { isWhole: true, full: pinyin };
+            }
+
+            // ─── 可靠的 TTS 播放封装（解决 Chrome/Safari cancel 后静默 bug）───
+            function safeSpeechSpeak(text, lang, rate, onEnd) {
+                if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = lang || 'zh-CN';
+                u.rate = rate || 0.85;
+                u.onend = () => { if (onEnd) onEnd(); };
+                u.onerror = () => { if (onEnd) onEnd(); };
+                window.speechSynthesis.speak(u);
+                // Chrome 有时 speak 后 paused 了，强制恢复
+                setTimeout(() => {
+                    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                }, 100);
+            }
+
+            function spellPinyin(pinyin, onFullSyllableStart, onEnd, checkAbort) {
+                if (!pinyin) { if (onEnd) onEnd(); return; }
+                if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
+                window.speechSynthesis.cancel();
+                const info = decomposePinyin(pinyin);
+                const speak = (text, rate, callback) => {
+                    if (checkAbort && !checkAbort()) return;
+                    safeSpeechSpeak(text, 'zh-CN', rate, callback);
+                };
+                // Chrome/Safari: cancel() 后需延迟，否则后续 speak 静默
+                setTimeout(() => {
+                    if (checkAbort && !checkAbort()) return;
+                    if (info.isWhole) {
+                        speak(info.full, 0.8, () => {
+                            setTimeout(() => {
+                                if (checkAbort && !checkAbort()) return;
+                                if (onFullSyllableStart) onFullSyllableStart();
+                                speak(info.full, 0.9, onEnd);
+                            }, 200);
+                        });
+                    } else {
+                        speak(info.initialPhonetic, 0.7, () => {
+                            setTimeout(() => {
+                                if (checkAbort && !checkAbort()) return;
+                                speak(info.final, 0.7, () => {
+                                    setTimeout(() => {
+                                        if (checkAbort && !checkAbort()) return;
+                                        if (onFullSyllableStart) onFullSyllableStart();
+                                        speak(info.full, 0.9, onEnd);
+                                    }, 200);
+                                });
+                            }, 150);
+                        });
+                    }
+                }, 150);
+            }
+
             function speakWord(text) {
                 if (!('speechSynthesis' in window)) return;
-                const u = new SpeechSynthesisUtterance(text); u.lang = 'zh-CN'; u.rate = 0.85;
-                window.speechSynthesis.speak(u);
+                window.speechSynthesis.cancel();
+                setTimeout(() => {
+                    safeSpeechSpeak(text, 'zh-CN', 0.85);
+                }, 150);
+            }
+
+            function speakWords(text) {
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const phrases = (text || '').split(/[、，,]/).filter(Boolean);
+                // 延迟后依次朗读每个词语
+                setTimeout(() => {
+                    phrases.forEach(p => safeSpeechSpeak(p.trim(), 'zh-CN', 0.85));
+                }, 150);
+            }
+
+            function stopSpeech() {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
             }
             let bgmNodes = [];
             function startBGM() {
-                ensureAudio();
-                const master = audioCtx.createGain(); master.gain.value = 0.03; master.connect(audioCtx.destination);
-                [110, 165, 220, 330].forEach((f, i) => {
-                    const o = audioCtx.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.detune.value = i * 3;
-                    o.connect(master); o.start(); bgmNodes.push(o);
-                });
+                // Background music disabled as per user request
             }
             function stopBGM() { bgmNodes.forEach(o => { try { o.stop(); } catch (e) { } }); bgmNodes = []; }
             const SFX = {
                 correct(data) {
                     synth(880, 'sine', 0.15, 0.25); synth(1100, 'sine', 0.2, 0.15);
-                    // v2.8: 撞击正确项时只播放汉字读音
-                    if (data.word) setTimeout(() => speakWord(data.word), 150);
+                    if (data.type === 'spell') {
+                        // 等音效播完后再拼读，给足延迟
+                        setTimeout(() => spellPinyin(data.pinyin), 250);
+                    } else if (data.word) {
+                        // 等音效播完后再朗读
+                        setTimeout(() => speakWord(data.word), 250);
+                    }
                 },
                 wrong() { synth(150, 'sawtooth', 0.3, 0.2); synth(120, 'square', 0.2, 0.15); },
                 hit() { synth(80, 'square', 0.15, 0.3); },
@@ -558,8 +966,16 @@
             // ===== 关卡数据 =====
             // v4.0: 用函数取代const，确保loadConfig后始终读取最新数据
             function getAllData() { return CFG.dataSource.offlineData; }
-            let pinyinList = getAllData().map(d => d.pinyin);
-            let wordList = getAllData().map(d => d.word); // v4.1: 字找音用
+            let pinyinList = [];
+            let wordList = [];
+
+            function updateDataLists() {
+                const data = getAllData();
+                pinyinList = data.map(d => d.pinyin).filter(Boolean);
+                wordList = data.map(d => d.word).filter(Boolean);
+                console.log('Data Lists Updated:', pinyinList.length, 'words');
+            }
+            updateDataLists(); // 初始化一次
 
             // ===== 数组洗牌 =====
             function shuffleArray(arr) {
@@ -572,16 +988,19 @@
 
             // ===== 等级计算 =====
             function getLevel(score) {
-                // 优先使用配置中的等级规则
+                // 使用配置中的等级规则
                 const grades = (CFG.character && CFG.character.grades) || [
-                    { name: "识字新兵", score: 0 },
-                    { name: "大师", score: 10000 }
+                    { name: "识字新兵", score: 0 }
                 ];
-                let lv = grades[0];
-                for (const l of grades) {
-                    if (score >= l.score) lv = l;
+                let lvIdx = 0;
+                for (let i = 0; i < grades.length; i++) {
+                    if (score >= grades[i].score) lvIdx = i;
                 }
-                return { rank: lv.name || lv.rank };
+                const lv = grades[lvIdx];
+                return {
+                    rank: lv.name || lv.rank || "识字新兵",
+                    levelNumber: lvIdx + 1
+                };
             }
 
             // ===== 难度曲线 =====
@@ -696,10 +1115,8 @@
                     if (ch) {
                         if (ch.nickname) CFG.metadata.playerName = ch.nickname;
                         if (Array.isArray(ch.grades) && ch.grades.length > 0) {
-                            CFG.levels = ch.grades.map(g => ({
-                                rank: g.name,
-                                threshold: g.score
-                            }));
+                            // 同步到核心配置，确保 getLevel 能读取到最新阈值
+                            CFG.character.grades = ch.grades;
                         }
                     }
 
@@ -724,10 +1141,13 @@
                         if (Array.isArray(us.csvData) && us.csvData.length > 0) {
                             CFG.dataSource.offlineData = us.csvData.map(row => ({
                                 word: row.word || '',
-                                pinyin: row.pinyin || ''
+                                pinyin: row.pinyin || '',
+                                radical: row.radical || '',
+                                words_std: row.words_std || ''
                             }));
                         }
                     }
+                    updateDataLists(); // 加载配置后必须同步全局变量
 
                 } catch (e) {
                     console.warn('Failed to load config:', e);
@@ -1640,11 +2060,13 @@
                     ST.correctTotal++;
                     ST.correctStreak++;
                     ST.wrongStreak = 0;
-                    // v4.1: 播放音频（音找字播汉字，字找音播拼音）
+                    // v4.1: 播放音频
                     if (ST.gamePhase === 'wordToSound') {
-                        SFX.correct({ word: ST.currentPinyin }); // 播拼音
+                        // 字找音：正确撞击播拼音拼写
+                        SFX.correct({ type: 'spell', pinyin: o.pinyin });
                     } else {
-                        SFX.correct({ pinyin: ST.currentPinyin, word: o.word });
+                        // 音找字：正确撞击播汉字读音
+                        SFX.correct({ word: o.word });
                     }
                     spawnParticles(trackX(o.track, o.y), o.y, '#00ffcc', 25);
                     spawnParticles(trackX(o.track, o.y), o.y, '#ffd700', 15);
@@ -1779,7 +2201,13 @@
                 ST.levelTimer = 0;
                 updateHUD();
                 // 任务提示音
-                setTimeout(() => speakWord(ST.currentCorrectWord || ST.currentPinyin), 300);
+                setTimeout(() => {
+                    if (ST.gamePhase === 'soundToWord') {
+                        spellPinyin(ST.currentPinyin);
+                    } else {
+                        speakWord(ST.currentCorrectWord);
+                    }
+                }, 300);
             }
 
             function endGame(allClear) {
@@ -1815,6 +2243,7 @@
                 ST.lastTime = 0;
                 ST.gameOver = false; ST.running = true; ST.paused = false;
                 if (ST.failedLevelIndex < 0) {
+                    updateDataLists(); // 重置或开始前确保数据列表是最新的
                     shuffleArray(pinyinList);
                     shuffleArray(wordList);
                 }
@@ -1848,8 +2277,7 @@
 
                 // 等级
                 const lv = getLevel(ST.score);
-                const lvIdx = CFG.levels.indexOf(lv) + 1;
-                document.getElementById('hud-level').textContent = `Lv.${lvIdx} ${lv.rank}`;
+                document.getElementById('hud-level').textContent = `Lv.${lv.levelNumber} ${lv.rank}`;
 
                 // v2.8.6: 连击提示优化（带动画）
                 const comboEl = document.getElementById('hud-combo');
@@ -2079,6 +2507,188 @@
             pinyinList = CFG.dataSource.offlineData.map(d => d.pinyin);
             wordList = CFG.dataSource.offlineData.map(d => d.word);
 
+            // ═══════ 任务看板逻辑 ═══════
+            function openTaskBoard() {
+                const board = document.getElementById('task-board');
+                const grid = document.getElementById('tb-grid');
+                const data = CFG.dataSource.offlineData;
+
+                // 标题
+                document.getElementById('tb-title').textContent = CFG.metadata.unitTitle || '单元信息';
+
+                // 摘要统计
+                const wordCount = data.length;
+                const allWords = data.map(d => d.words_std || '').filter(Boolean);
+                const wordPhrases = new Set();
+                allWords.forEach(w => w.split(/[、，,]/).forEach(p => { if (p.trim()) wordPhrases.add(p.trim()); }));
+                document.getElementById('tb-summary').innerHTML =
+                    `本单元生字共 <em>${wordCount}</em> 个汉字，<em>${wordPhrases.size}</em> 个词语`;
+
+                // 生成卡片
+                grid.innerHTML = '';
+                data.forEach((item, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'fc-container';
+                    card.dataset.idx = idx;
+
+                    // 背面词语：高亮生字
+                    const wordsRaw = (item.words_std || '').split(/[、，,]/);
+                    const wordsHtml = wordsRaw.map(w => {
+                        if (!w.trim()) return '';
+                        return w.split('').map(ch =>
+                            ch === item.word ? `<span class="hl">${ch}</span>` : ch
+                        ).join('');
+                    }).filter(Boolean).join('<br>');
+
+                    card.innerHTML = `
+                        <div class="fc-inner">
+                            <div class="fc-front">
+                                <div class="fc-word">${item.word}</div>
+                                <div class="fc-pinyin">${item.pinyin}</div>
+                            </div>
+                            <div class="fc-back">
+                                <div class="fc-word-back">${item.word}</div>
+                                <div class="fc-radical">部首 <span>${item.radical || '—'}</span></div>
+                                <div class="fc-words-list">${wordsHtml || '—'}</div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                board.classList.add('show');
+                initCardInteraction();
+            }
+
+            // ─── Web Speech 工具 (Task Board 兼容旧名) ───
+            function tbSpellPinyin(p, f, e, a) { spellPinyin(p, f, e, a); }
+            function tbSpeakWords(t) { speakWords(t); }
+            function tbStopSpeech() { stopSpeech(); }
+
+            // ─── 卡片交互（多模态：PC 鼠标 + Mobile 触摸 并存）───
+            function initCardInteraction() {
+                const cards = document.querySelectorAll('#tb-grid .fc-container');
+                const data = CFG.dataSource.offlineData;
+                // 用时间窗口区分触摸产生的 mouseenter 和真实鼠标 mouseenter
+                // 触摸后 500ms 内的 mouseenter 视为触摸派生事件，忽略
+                let lastTouchTime = 0;
+
+                cards.forEach(card => {
+                    const idx = parseInt(card.dataset.idx);
+                    const item = data[idx];
+                    if (!item) return;
+
+                    // ─── PC：鼠标交互 ───
+                    let hoverActive = false;
+
+                    card.addEventListener('mouseenter', () => {
+                        // 如果刚刚发生过触摸（500ms内），忽略此次 mouseenter
+                        if (Date.now() - lastTouchTime < 500) return;
+                        hoverActive = true;
+                        if (card.classList.contains('flipped')) return;
+                        tbStopSpeech();
+                        tbSpellPinyin(item.pinyin,
+                            null,
+                            () => {
+                                if (!hoverActive) return;
+                                card.classList.add('flipped');
+                                setTimeout(() => {
+                                    if (hoverActive) tbSpeakWords(item.words_std);
+                                }, 500);
+                            },
+                            () => hoverActive
+                        );
+                    });
+
+                    card.addEventListener('mouseleave', () => {
+                        if (Date.now() - lastTouchTime < 500) return;
+                        hoverActive = false;
+                        card.classList.remove('flipped');
+                        tbStopSpeech();
+                    });
+
+                    // ─── Mobile：触摸交互 ───
+                    let tapCount = 0;
+                    let tapTimer = null;
+
+                    card.addEventListener('touchstart', (e) => {
+                        lastTouchTime = Date.now();
+                    }, { passive: true });
+
+                    card.addEventListener('touchend', (e) => {
+                        lastTouchTime = Date.now();
+                        e.preventDefault();
+                        tapCount++;
+
+                        if (tapCount === 1) {
+                            tapTimer = setTimeout(() => {
+                                tapCount = 0;
+                                tbStopSpeech();
+                                if (card.classList.contains('flipped')) {
+                                    card.classList.remove('flipped');
+                                } else {
+                                    tbSpellPinyin(item.pinyin);
+                                }
+                            }, 250);
+                        } else if (tapCount >= 2) {
+                            clearTimeout(tapTimer);
+                            tapCount = 0;
+                            tbStopSpeech();
+                            card.classList.add('flipped');
+                            setTimeout(() => tbSpeakWords(item.words_std), 550);
+                        }
+                    });
+                });
+            }
+
+            // ─── 启动游戏（从看板进入）───
+            function launchGameFromBoard(phase) {
+                const board = document.getElementById('task-board');
+                board.classList.remove('show');
+                tbStopSpeech();
+
+                ensureAudio();
+                updateDataLists(); // 进入游戏前最后一次对齐数据
+                const v = new SpeechSynthesisUtterance(''); v.volume = 0; window.speechSynthesis.speak(v);
+                startBGM();
+
+                // 设置游戏阶段
+                if (phase === 'wordToSound') {
+                    ST.gamePhase = 'wordToSound';
+                    CFG.levelDesign = CFG.levelDesign || {};
+                    CFG.levelDesign.levelName = '字找音';
+                    CFG.levelDesign.taskSource = 'word';
+                    CFG.levelDesign.correctSource = 'pinyin';
+                    CFG.levelDesign.wrongSource = 'pinyin';
+                } else {
+                    ST.gamePhase = 'soundToWord';
+                    CFG.levelDesign = CFG.levelDesign || {};
+                    CFG.levelDesign.levelName = '音找字';
+                    CFG.levelDesign.taskSource = 'pinyin';
+                    CFG.levelDesign.correctSource = 'word';
+                    CFG.levelDesign.wrongSource = 'word_exclude_homophone';
+                }
+
+                // 初始化游戏状态
+                ST.levelIndex = 0;
+                ST.score = 0;
+                ST.lives = CFG.rules.initLives || 3;
+                ST.gameOver = false;
+                const wasRunning = ST.running;
+                ST.running = true;
+
+                updateHUD();
+                startLevel();
+
+                if (!wasRunning) {
+                    ST.lastTime = performance.now();
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+
+            document.getElementById('tb-btn-s2w').onclick = () => launchGameFromBoard('soundToWord');
+            document.getElementById('tb-btn-w2s').onclick = () => launchGameFromBoard('wordToSound');
+
             document.getElementById('start-btn').onclick = () => {
                 const ss = document.getElementById('start-screen');
                 ss.style.opacity = '0';
@@ -2086,10 +2696,8 @@
                 ensureAudio();
                 // 预热 TTS
                 const v = new SpeechSynthesisUtterance(''); v.volume = 0; window.speechSynthesis.speak(v);
-                startBGM();
-                ST.running = true;
-                startLevel();
-                requestAnimationFrame(gameLoop);
+                // 打开任务看板而非直接启动游戏
+                openTaskBoard();
             };
 
             document.getElementById('go-restart').onclick = restartGame;

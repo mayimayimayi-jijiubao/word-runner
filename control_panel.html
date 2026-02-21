@@ -1427,7 +1427,9 @@
                 CFG.dataSource = CFG.dataSource || {};
                 CFG.dataSource.offlineData = CFG.unit_settings.csvData.map(d => ({
                     word: d.word || '',
-                    pinyin: d.pinyin || ''
+                    pinyin: d.pinyin || '',
+                    radical: d.radical || '',
+                    words_std: d.words_std || ''
                 }));
                 console.log('✅ 已全量固化离线数据:', CFG.dataSource.offlineData.length, '条');
             }
