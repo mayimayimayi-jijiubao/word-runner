@@ -4,6 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <!-- Safari防缓存/强制重载标签 -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>字跑大师</title>
     <style>
         * {
@@ -25,12 +29,15 @@
         }
 
         #wrap {
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow: hidden;
         }
 
         canvas {
@@ -843,80 +850,114 @@
                 return { isWhole: true, full: pinyin };
             }
 
-            // ─── 可靠的 TTS 播放封装（解决 Chrome/Safari cancel 后静默 bug）───
-            function safeSpeechSpeak(text, lang, rate, onEnd) {
-                if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
-                const u = new SpeechSynthesisUtterance(text);
-                u.lang = lang || 'zh-CN';
-                u.rate = rate || 0.85;
-                u.onend = () => { if (onEnd) onEnd(); };
-                u.onerror = () => { if (onEnd) onEnd(); };
-                window.speechSynthesis.speak(u);
-                // Chrome 有时 speak 后 paused 了，强制恢复
-                setTimeout(() => {
-                    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-                }, 100);
-            }
+            // ─── AI 专家优化的统一 Web Speech 引擎 ───
+            const VoiceEngine = {
+                _isCancelling: false,
+                _activeUtterance: null, // 🔴 核心修复：防止 WebKit (Safari/Chrome) 将局部 utterance 对象垃圾回收导致 onend 回调永远丢失！
+                speak: (text, rate = 0.85, onEnd = null) => {
+                    if (!('speechSynthesis' in window) || !text) {
+                        if (onEnd) onEnd();
+                        return;
+                    }
+                    // 仅当真的有播放中的声音才 cancel，否则会导致 Chrome 立刻返回 canceled
+                    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                        VoiceEngine._isCancelling = true;
+                        try { window.speechSynthesis.cancel(); } catch (e) { }
+                        VoiceEngine._isCancelling = false;
+                    }
 
+                    // 用短延时开启新音频，避免原生静默Bug
+                    setTimeout(() => {
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        VoiceEngine._activeUtterance = utterance; // 挂载至全局
+
+                        utterance.lang = 'zh-CN';
+                        utterance.rate = rate;
+                        utterance.pitch = 1;
+                        utterance.volume = 1;
+
+                        let handled = false;
+                        let fallbackTimer = null;
+
+                        const handleEnd = () => {
+                            if (!handled && !VoiceEngine._isCancelling) {
+                                handled = true;
+                                clearTimeout(fallbackTimer);
+                                if (onEnd) onEnd();
+                            }
+                        };
+
+                        utterance.onend = handleEnd;
+                        utterance.onerror = handleEnd;
+
+                        try { window.speechSynthesis.speak(utterance); } catch (e) { }
+
+                        // 🔴 冗余保险：如果系统级引擎发生瘫痪，依然能通过 fallback 继续流转逻辑（让卡片能翻转）
+                        const estimateMs = Math.max(1200, text.length * 600 / rate);
+                        fallbackTimer = setTimeout(handleEnd, estimateMs);
+
+                        setTimeout(() => {
+                            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                        }, 100);
+                    }, 50);
+                },
+                cancel: () => {
+                    if ('speechSynthesis' in window) {
+                        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                            VoiceEngine._isCancelling = true;
+                            try { window.speechSynthesis.cancel(); } catch (e) { }
+                            VoiceEngine._activeUtterance = null;
+                            VoiceEngine._isCancelling = false;
+                        }
+                    }
+                }
+            };
+
+            // 保持原有接口兼容，并恢复极其重要的“拼读”逻辑（声母+韵母->全音）
             function spellPinyin(pinyin, onFullSyllableStart, onEnd, checkAbort) {
                 if (!pinyin) { if (onEnd) onEnd(); return; }
-                if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
-                window.speechSynthesis.cancel();
+                if (checkAbort && !checkAbort()) return;
+
                 const info = decomposePinyin(pinyin);
-                const speak = (text, rate, callback) => {
-                    if (checkAbort && !checkAbort()) return;
-                    safeSpeechSpeak(text, 'zh-CN', rate, callback);
-                };
-                // Chrome/Safari: cancel() 后需延迟，否则后续 speak 静默
-                setTimeout(() => {
-                    if (checkAbort && !checkAbort()) return;
-                    if (info.isWhole) {
-                        speak(info.full, 0.8, () => {
-                            setTimeout(() => {
-                                if (checkAbort && !checkAbort()) return;
-                                if (onFullSyllableStart) onFullSyllableStart();
-                                speak(info.full, 0.9, onEnd);
-                            }, 200);
-                        });
-                    } else {
-                        speak(info.initialPhonetic, 0.7, () => {
-                            setTimeout(() => {
-                                if (checkAbort && !checkAbort()) return;
-                                speak(info.final, 0.7, () => {
-                                    setTimeout(() => {
-                                        if (checkAbort && !checkAbort()) return;
-                                        if (onFullSyllableStart) onFullSyllableStart();
-                                        speak(info.full, 0.9, onEnd);
-                                    }, 200);
-                                });
-                            }, 150);
-                        });
-                    }
-                }, 150);
+
+                if (info.isWhole) {
+                    VoiceEngine.speak(info.full, 0.8, () => {
+                        setTimeout(() => {
+                            if (checkAbort && !checkAbort()) return;
+                            if (onFullSyllableStart) onFullSyllableStart();
+                            VoiceEngine.speak(info.full, 0.9, onEnd);
+                        }, 200);
+                    });
+                } else {
+                    VoiceEngine.speak(info.initialPhonetic, 0.7, () => {
+                        setTimeout(() => {
+                            if (checkAbort && !checkAbort()) return;
+                            VoiceEngine.speak(info.final, 0.7, () => {
+                                setTimeout(() => {
+                                    if (checkAbort && !checkAbort()) return;
+                                    if (onFullSyllableStart) onFullSyllableStart();
+                                    VoiceEngine.speak(info.full, 0.9, onEnd);
+                                }, 200);
+                            });
+                        }, 150);
+                    });
+                }
             }
 
             function speakWord(text) {
-                if (!('speechSynthesis' in window)) return;
-                window.speechSynthesis.cancel();
-                setTimeout(() => {
-                    safeSpeechSpeak(text, 'zh-CN', 0.85);
-                }, 150);
+                if (!text) return;
+                VoiceEngine.speak(text, 0.85);
             }
 
             function speakWords(text) {
-                if (!('speechSynthesis' in window)) return;
-                window.speechSynthesis.cancel();
-                const phrases = (text || '').split(/[、，,]/).filter(Boolean);
-                // 延迟后依次朗读每个词语
-                setTimeout(() => {
-                    phrases.forEach(p => safeSpeechSpeak(p.trim(), 'zh-CN', 0.85));
-                }, 150);
+                if (!text) return;
+                // 将词组连接在一起，添加停顿
+                const phrases = text.split(/[、，,]/).filter(Boolean).join('，');
+                VoiceEngine.speak(phrases, 0.85);
             }
 
             function stopSpeech() {
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                }
+                VoiceEngine.cancel();
             }
             let bgmNodes = [];
             function startBGM() {
@@ -2560,10 +2601,7 @@
                 initCardInteraction();
             }
 
-            // ─── Web Speech 工具 (Task Board 兼容旧名) ───
-            function tbSpellPinyin(p, f, e, a) { spellPinyin(p, f, e, a); }
-            function tbSpeakWords(t) { speakWords(t); }
-            function tbStopSpeech() { stopSpeech(); }
+            // ─── Web Speech 工具 (Task Board) 已由统一引擎接管 ───
 
             // ─── 卡片交互（多模态：PC 鼠标 + Mobile 触摸 并存）───
             function initCardInteraction() {
@@ -2586,25 +2624,29 @@
                         if (Date.now() - lastTouchTime < 500) return;
                         hoverActive = true;
                         if (card.classList.contains('flipped')) return;
-                        tbStopSpeech();
-                        tbSpellPinyin(item.pinyin,
-                            null,
-                            () => {
+                        stopSpeech();
+
+                        // 串联朗读：先读汉字，再拼读，然后翻转读词语
+                        VoiceEngine.speak(item.word, 0.85, () => {
+                            if (!hoverActive) return;
+                            setTimeout(() => {
                                 if (!hoverActive) return;
-                                card.classList.add('flipped');
-                                setTimeout(() => {
-                                    if (hoverActive) tbSpeakWords(item.words_std);
-                                }, 500);
-                            },
-                            () => hoverActive
-                        );
+                                spellPinyin(item.pinyin, null, () => {
+                                    if (!hoverActive) return;
+                                    card.classList.add('flipped');
+                                    setTimeout(() => {
+                                        if (hoverActive) speakWords(item.words_std);
+                                    }, 500);
+                                }, () => hoverActive);
+                            }, 150);
+                        });
                     });
 
                     card.addEventListener('mouseleave', () => {
                         if (Date.now() - lastTouchTime < 500) return;
                         hoverActive = false;
                         card.classList.remove('flipped');
-                        tbStopSpeech();
+                        stopSpeech();
                     });
 
                     // ─── Mobile：触摸交互 ───
@@ -2623,19 +2665,24 @@
                         if (tapCount === 1) {
                             tapTimer = setTimeout(() => {
                                 tapCount = 0;
-                                tbStopSpeech();
+                                stopSpeech();
                                 if (card.classList.contains('flipped')) {
                                     card.classList.remove('flipped');
                                 } else {
-                                    tbSpellPinyin(item.pinyin);
+                                    // 触摸单次：读汉字 + 读拼音
+                                    VoiceEngine.speak(item.word, 0.85, () => {
+                                        setTimeout(() => {
+                                            spellPinyin(item.pinyin);
+                                        }, 150);
+                                    });
                                 }
                             }, 250);
                         } else if (tapCount >= 2) {
                             clearTimeout(tapTimer);
                             tapCount = 0;
-                            tbStopSpeech();
+                            stopSpeech();
                             card.classList.add('flipped');
-                            setTimeout(() => tbSpeakWords(item.words_std), 550);
+                            setTimeout(() => speakWords(item.words_std), 550);
                         }
                     });
                 });
@@ -2645,11 +2692,12 @@
             function launchGameFromBoard(phase) {
                 const board = document.getElementById('task-board');
                 board.classList.remove('show');
-                tbStopSpeech();
+                stopSpeech();
 
                 ensureAudio();
                 updateDataLists(); // 进入游戏前最后一次对齐数据
-                const v = new SpeechSynthesisUtterance(''); v.volume = 0; window.speechSynthesis.speak(v);
+                // 预热TTS使用空格而非空字符，空字符在Chrome会导致队列挂起
+                const v = new SpeechSynthesisUtterance(' '); v.volume = 0; window.speechSynthesis.speak(v);
                 startBGM();
 
                 // 设置游戏阶段
@@ -2695,7 +2743,8 @@
                 setTimeout(() => ss.remove(), 600);
                 ensureAudio();
                 // 预热 TTS
-                const v = new SpeechSynthesisUtterance(''); v.volume = 0; window.speechSynthesis.speak(v);
+                // 预热TTS使用空格而非空字符
+                const v = new SpeechSynthesisUtterance(' '); v.volume = 0; window.speechSynthesis.speak(v);
                 // 打开任务看板而非直接启动游戏
                 openTaskBoard();
             };
