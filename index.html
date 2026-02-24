@@ -23,7 +23,7 @@
             overflow: hidden;
             background: #2d3436;
             /* Deep Grey Background */
-            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            font-family: 'PingFang SC', 'Microsoft YaHei', "PingFang SC", sans-serif;
             touch-action: none;
             user-select: none
         }
@@ -169,7 +169,6 @@
             justify-content: center;
             align-items: center;
             color: #fff;
-            backdrop-filter: blur(5px);
         }
 
         #phase-transition h2 {
@@ -200,7 +199,7 @@
             box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
             transform: rotate(-1deg);
             transition: transform 0.2s;
-            font-family: "Microsoft YaHei", sans-serif;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
         }
 
         #phase-transition button:hover {
@@ -217,7 +216,7 @@
             justify-content: center;
             align-items: center;
             color: #2d3436;
-            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
         }
 
         #start-screen h1 {
@@ -251,7 +250,7 @@
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s, box-shadow 0.2s;
             transform: rotate(-1.5deg);
-            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             letter-spacing: 2px;
         }
 
@@ -317,7 +316,6 @@
             justify-content: center;
             align-items: center;
             color: #fff;
-            backdrop-filter: blur(5px);
         }
 
         #level-clear h2 {
@@ -349,7 +347,7 @@
             box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
             transform: rotate(1deg);
             transition: transform 0.2s;
-            font-family: "Microsoft YaHei", sans-serif;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
         }
 
         #level-clear button:hover {
@@ -365,7 +363,7 @@
             z-index: 150;
             display: none;
             flex-direction: column;
-            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             overflow: hidden;
         }
 
@@ -527,7 +525,7 @@
             border-radius: 2px;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background-image: repeating-linear-gradient(transparent, transparent 17px, rgba(0, 0, 0, 0.04) 18px);
             box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
         }
@@ -790,8 +788,10 @@
             }
             const W = 450, H = 800;
             const canvas = document.getElementById('gc');
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }) || canvas.getContext('2d');
             canvas.width = W; canvas.height = H;
+            const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const IS_CHROMIUM = /(?:chrome|chromium|crios|edg)/i.test(navigator.userAgent) && !IS_SAFARI;
 
             // ===== 自适应缩放 =====
             function resize() {
@@ -850,98 +850,168 @@
                 return { isWhole: true, full: pinyin };
             }
 
+            // 全局缓存语音列表，解决 Chrome 首次加载时 getVoices() 为空的 Bug
+            let cachedVoices = [];
+            if ('speechSynthesis' in window) {
+                cachedVoices = window.speechSynthesis.getVoices();
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        cachedVoices = window.speechSynthesis.getVoices();
+                    };
+                }
+            }
+
+            let ttsUnlocked = false;
+            let ttsReady = false;
+            let pendingSpeechTask = null;
+            let pendingSpeechUnlockBound = false;
+
+            function clearPendingSpeechUnlockListeners() {
+                if (!pendingSpeechUnlockBound) return;
+                window.removeEventListener('pointerdown', flushPendingSpeechOnGesture, true);
+                window.removeEventListener('keydown', flushPendingSpeechOnGesture, true);
+                window.removeEventListener('touchend', flushPendingSpeechOnGesture, true);
+                pendingSpeechUnlockBound = false;
+            }
+
+            function flushPendingSpeechOnGesture() {
+                if (!ttsUnlocked) warmUpTTS();
+                if (!pendingSpeechTask) return;
+                const task = pendingSpeechTask;
+                pendingSpeechTask = null;
+                clearPendingSpeechUnlockListeners();
+                task();
+            }
+
+            function scheduleSpeechOnNextGesture(task) {
+                pendingSpeechTask = task;
+                if (pendingSpeechUnlockBound) return;
+                pendingSpeechUnlockBound = true;
+                window.addEventListener('pointerdown', flushPendingSpeechOnGesture, { once: true, capture: true });
+                window.addEventListener('keydown', flushPendingSpeechOnGesture, { once: true, capture: true });
+                window.addEventListener('touchend', flushPendingSpeechOnGesture, { once: true, capture: true });
+            }
+
             // ─── AI 专家优化的统一 Web Speech 引擎 ───
             const VoiceEngine = {
-                _isCancelling: false,
-                _activeUtterance: null, // 🔴 核心修复：防止 WebKit (Safari/Chrome) 将局部 utterance 对象垃圾回收导致 onend 回调永远丢失！
+                _uid: 0,
                 speak: (text, rate = 0.85, onEnd = null) => {
                     if (!('speechSynthesis' in window) || !text) {
                         if (onEnd) onEnd();
                         return;
                     }
-                    // 仅当真的有播放中的声音才 cancel，否则会导致 Chrome 立刻返回 canceled
-                    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-                        VoiceEngine._isCancelling = true;
-                        try { window.speechSynthesis.cancel(); } catch (e) { }
-                        VoiceEngine._isCancelling = false;
+
+                    if (!ttsUnlocked) {
+                        scheduleSpeechOnNextGesture(() => VoiceEngine.speak(text, rate, null));
+                        if (onEnd) onEnd();
+                        return;
                     }
 
-                    // 用短延时开启新音频，避免原生静默Bug
-                    setTimeout(() => {
-                        const utterance = new SpeechSynthesisUtterance(text);
-                        VoiceEngine._activeUtterance = utterance; // 挂载至全局
+                    VoiceEngine._uid++;
+                    const currentUid = VoiceEngine._uid;
 
-                        utterance.lang = 'zh-CN';
-                        utterance.rate = rate;
-                        utterance.pitch = 1;
-                        utterance.volume = 1;
+                    // Safari 强力防回收
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    window._activeUtterance = utterance;
 
-                        let handled = false;
-                        let fallbackTimer = null;
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = rate;
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
 
-                        const handleEnd = () => {
-                            if (!handled && !VoiceEngine._isCancelling) {
-                                handled = true;
-                                clearTimeout(fallbackTimer);
-                                if (onEnd) onEnd();
-                            }
-                        };
+                    const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+                    const zhVoice = voices.find(v => v.lang === 'zh-CN' && v.localService) ||
+                        voices.find(v => v.lang === 'zh-CN') ||
+                        voices.find(v => v.lang.includes('zh') || v.lang.includes('ZH'));
 
-                        utterance.onend = handleEnd;
-                        utterance.onerror = handleEnd;
+                    if (zhVoice) {
+                        utterance.voice = zhVoice;
+                        utterance.lang = zhVoice.lang;
+                    } else {
+                        const fallbackVoice = voices.find(v => v.localService) || voices[0];
+                        if (fallbackVoice) {
+                            utterance.voice = fallbackVoice;
+                            utterance.lang = fallbackVoice.lang || 'zh-CN';
+                        } else {
+                            utterance.lang = 'zh-CN';
+                        }
+                    }
 
-                        try { window.speechSynthesis.speak(utterance); } catch (e) { }
+                    let handled = false;
+                    let fallbackTimer = null;
+                    let kickTimer = null;
+                    let started = false;
 
-                        // 🔴 冗余保险：如果系统级引擎发生瘫痪，依然能通过 fallback 继续流转逻辑（让卡片能翻转）
-                        const estimateMs = Math.max(1200, text.length * 600 / rate);
-                        fallbackTimer = setTimeout(handleEnd, estimateMs);
+                    const handleEnd = () => {
+                        if (!handled && currentUid === VoiceEngine._uid) {
+                            handled = true;
+                            clearTimeout(fallbackTimer);
+                            clearTimeout(kickTimer);
+                            if (onEnd) onEnd();
+                        }
+                    };
 
-                        setTimeout(() => {
-                            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-                        }, 100);
-                    }, 50);
+                    utterance.onstart = () => { started = true; ttsReady = true; };
+                    utterance.onend = handleEnd;
+                    utterance.onerror = (e) => {
+                        // 即使浏览器立刻抛出 canceled 错误，也不会阻断后续逻辑(如翻页/下一阶段播放)
+                        if (e && (e.error === 'not-allowed' || e.error === 'interrupted')) {
+                            scheduleSpeechOnNextGesture(() => VoiceEngine.speak(text, rate, null));
+                        }
+                        setTimeout(handleEnd, 20);
+                    };
+
+                    // 【致命修复】：对于 Chrome 必须直接、同步执行调用，绝不能被包裹在 setTimeout 里！
+                    // 不然新一代 Chromium 会发现它丢失了 User-Gesture 来源而直接将音频 cancel()！
+                    // 并且只要不处于 pending，我们就尽量不轻易掉用 .cancel()，以防队列永远堵死
+                    try {
+                        window.speechSynthesis.resume();
+                        window.speechSynthesis.speak(utterance);
+                    } catch (e) { }
+
+                    kickTimer = setTimeout(() => {
+                        if (handled || started || currentUid !== VoiceEngine._uid) return;
+                        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) return;
+                        try {
+                            const u2 = new SpeechSynthesisUtterance(text);
+                            u2.lang = 'zh-CN';
+                            u2.rate = rate;
+                            u2.pitch = 1;
+                            u2.volume = 1;
+                            u2.onstart = () => { started = true; ttsReady = true; };
+                            u2.onend = handleEnd;
+                            u2.onerror = handleEnd;
+                            window.speechSynthesis.speak(u2);
+                        } catch (e) { }
+                    }, 180);
+
+                    const estimateMs = Math.max(1500, text.length * 400 / rate);
+                    fallbackTimer = setTimeout(handleEnd, estimateMs);
                 },
                 cancel: () => {
                     if ('speechSynthesis' in window) {
+                        VoiceEngine._uid++; // 强行废止回调链，阻止之前排队的音频触发接下来的状态
                         if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-                            VoiceEngine._isCancelling = true;
                             try { window.speechSynthesis.cancel(); } catch (e) { }
-                            VoiceEngine._activeUtterance = null;
-                            VoiceEngine._isCancelling = false;
                         }
                     }
                 }
             };
 
             // 保持原有接口兼容，并恢复极其重要的“拼读”逻辑（声母+韵母->全音）
+            function buildPinyinSpeechText(pinyin) {
+                if (!pinyin) return '';
+                const info = decomposePinyin(pinyin);
+                if (info.isWhole) return info.full;
+                return `${info.initialPhonetic}，，${info.final}，，${info.full}`;
+            }
+
             function spellPinyin(pinyin, onFullSyllableStart, onEnd, checkAbort) {
                 if (!pinyin) { if (onEnd) onEnd(); return; }
                 if (checkAbort && !checkAbort()) return;
-
-                const info = decomposePinyin(pinyin);
-
-                if (info.isWhole) {
-                    VoiceEngine.speak(info.full, 0.8, () => {
-                        setTimeout(() => {
-                            if (checkAbort && !checkAbort()) return;
-                            if (onFullSyllableStart) onFullSyllableStart();
-                            VoiceEngine.speak(info.full, 0.9, onEnd);
-                        }, 200);
-                    });
-                } else {
-                    VoiceEngine.speak(info.initialPhonetic, 0.7, () => {
-                        setTimeout(() => {
-                            if (checkAbort && !checkAbort()) return;
-                            VoiceEngine.speak(info.final, 0.7, () => {
-                                setTimeout(() => {
-                                    if (checkAbort && !checkAbort()) return;
-                                    if (onFullSyllableStart) onFullSyllableStart();
-                                    VoiceEngine.speak(info.full, 0.9, onEnd);
-                                }, 200);
-                            });
-                        }, 150);
-                    });
-                }
+                const combinedText = buildPinyinSpeechText(pinyin);
+                if (onFullSyllableStart) setTimeout(onFullSyllableStart, 800);
+                VoiceEngine.speak(combinedText, 0.75, onEnd);
             }
 
             function speakWord(text) {
@@ -1246,7 +1316,8 @@
 
             // ===== 粒子系统 =====
             function spawnParticles(x, y, color, count) {
-                for (let i = 0; i < count; i++) {
+                const actualCount = IS_SAFARI ? Math.max(2, Math.floor(count * 0.5)) : count;
+                for (let i = 0; i < actualCount; i++) {
                     ST.particles.push({
                         x, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8 - 3,
                         life: 1, decay: 0.01 + Math.random() * 0.02,
@@ -1255,10 +1326,14 @@
                     });
                 }
             }
-            function updateParticles() {
+            function updateParticles(dt) {
+                const frameScale = dt * 60;
                 for (let i = ST.particles.length - 1; i >= 0; i--) {
                     const p = ST.particles[i];
-                    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= p.decay;
+                    p.x += p.vx * frameScale;
+                    p.y += p.vy * frameScale;
+                    p.vy += 0.15 * frameScale;
+                    p.life -= p.decay * frameScale;
                     if (p.life <= 0) ST.particles.splice(i, 1);
                 }
             }
@@ -1293,45 +1368,37 @@
                 ctx.closePath(); ctx.fill();
             }
 
-            // ===== v3.0: 纸质风格渲染辅助函数 (New Helper Functions) =====
-            let paperPattern = null;
-            function createPaperPattern() {
-                if (paperPattern) return paperPattern;
+            // ===== 性能优化：离屏Canvas缓存背景 =====
+            // Safari 掉帧的元凶是每帧重新生成Pattern并填充全屏
+            let bgCanvas = document.createElement('canvas');
+            bgCanvas.width = W; bgCanvas.height = H;
+            let bgCtx = bgCanvas.getContext('2d');
+            let bgCached = false;
+
+            function initBackgroundCache() {
+                if (bgCached) return;
+                // 生成纹理
                 const pCanvas = document.createElement('canvas');
                 pCanvas.width = 256; pCanvas.height = 256;
                 const pCtx = pCanvas.getContext('2d');
-                // 基础深灰色背景
-                pCtx.fillStyle = '#2D3436';
-                pCtx.fillRect(0, 0, 256, 256);
-                // 添加噪点纹理
-                for (let i = 0; i < 6000; i++) {
+                pCtx.fillStyle = '#2D3436'; pCtx.fillRect(0, 0, 256, 256);
+                for (let i = 0; i < 4000; i++) { // 减少粒子数优化性能
                     pCtx.fillStyle = 'rgba(255,255,255,0.03)';
                     pCtx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
                 }
-                paperPattern = ctx.createPattern(pCanvas, 'repeat');
-                return paperPattern;
+                const pattern = bgCtx.createPattern(pCanvas, 'repeat');
+                bgCtx.fillStyle = pattern;
+                bgCtx.fillRect(0, 0, W, H);
+                bgCached = true;
             }
 
-            // 绘制粗糙边缘路径 (Wobble Effect)
+            // 极速模式：禁用极其耗费 Safari CPU 的高频率动态计算边缘抖动特效
             function drawRoughPath(ctx, points, closePath = false) {
                 if (points.length < 2) return;
                 ctx.beginPath();
                 ctx.moveTo(points[0].x, points[0].y);
-                for (let i = 0; i < points.length - 1; i++) {
-                    const p1 = points[i];
-                    const p2 = points[i + 1];
-                    const dist = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
-                    const steps = Math.max(1, Math.floor(dist / 20)); // 每20px一个扰动点
-
-                    for (let j = 1; j <= steps; j++) {
-                        const t = j / steps;
-                        const bx = p1.x + (p2.x - p1.x) * t;
-                        const by = p1.y + (p2.y - p1.y) * t;
-                        // 随机扰动 (-1.5 到 1.5)
-                        const jitX = (Math.random() - 0.5) * 3;
-                        const jitY = (Math.random() - 0.5) * 3;
-                        ctx.lineTo(bx + jitX, by + jitY);
-                    }
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
                 }
                 if (closePath) {
                     ctx.closePath();
@@ -1346,8 +1413,8 @@
                 VP.y = taskUIY;
 
                 // 1. 全屏背景 (纸张纹理)
-                ctx.fillStyle = createPaperPattern();
-                ctx.fillRect(0, 0, W, H);
+                if (!bgCached) initBackgroundCache();
+                ctx.drawImage(bgCanvas, 0, 0);
 
                 // 2. 绘制跑道主体 (大剪纸带)
                 // 计算左右边缘的关键点
@@ -1398,7 +1465,7 @@
                 ctx.save();
                 ctx.strokeStyle = 'rgba(0,0,0,0.15)'; // 淡淡的压痕色
                 ctx.lineWidth = 2;
-                ctx.setLineDash([15, 15]); // 宽虚线
+                if (!IS_SAFARI) ctx.setLineDash([15, 15]); // Safari 下禁用虚线，减少主线程开销
 
                 // 线1 (跑道 0|1 之间)
                 // 线2 (跑道 1|2 之间)
@@ -1422,8 +1489,9 @@
                 ctx.restore();
 
                 // 4. 起跑线/装饰横线 (贴纸条)
-                // 移动的跑道装饰线
-                ST.roadLines.forEach(rl => {
+                // Safari 下减少装饰线数量，缓解绘制抖动。
+                ST.roadLines.forEach((rl, idx) => {
+                    if (IS_SAFARI && (idx % 2 !== 0)) return;
                     const s = trackScale(rl.y);
                     const h = s * 20;
 
@@ -1441,22 +1509,26 @@
 
                 // 5. 单元信息显示（跑道最下方）
                 ctx.save();
-                ctx.font = '12px "Microsoft YaHei"';
+                ctx.font = "12px 'PingFang SC', 'Microsoft YaHei'";
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
                 ctx.fillStyle = 'rgba(180, 170, 155, 0.7)';
                 ctx.fillText(CFG.metadata.unitTitle || '', W / 2, H - 8);
                 ctx.restore();
             }
-            function updateRoadLines() {
+            let roadLineSpawnAcc = 0;
+            function updateRoadLines(dt) {
                 const diff = getDifficulty();
-                // 添加新线
-                if (ST.frameCount % 15 === 0) {
+                const frameScale = dt * 60;
+                // 添加新线（固定时间间隔，避免低帧率时线条变稀）
+                roadLineSpawnAcc += dt;
+                while (roadLineSpawnAcc >= 0.25) {
                     ST.roadLines.push({ y: VP.y });
+                    roadLineSpawnAcc -= 0.25;
                 }
                 // v2.8: 移动（受跑动速度影响）
                 for (let i = ST.roadLines.length - 1; i >= 0; i--) {
-                    ST.roadLines[i].y += diff.speed * 1.5 * ST.runSpeedMultiplier;
+                    ST.roadLines[i].y += diff.speed * 1.5 * ST.runSpeedMultiplier * frameScale;
                     if (ST.roadLines[i].y > H) ST.roadLines.splice(i, 1);
                 }
             }
@@ -1464,7 +1536,7 @@
             // ===== 跳跃轨迹绘制 =====
             // ===== 跳跃轨迹绘制 (缝纫线风格) =====
             function drawJumpTrajectory() {
-                if (ST.isGrounded) return;
+                if (ST.isGrounded || IS_SAFARI) return;
 
                 ctx.save();
                 ctx.strokeStyle = '#555'; // 深色缝衣线
@@ -1499,6 +1571,10 @@
             }
 
             // ===== v3.0: 纸偶角色绘制 (Paper Puppet - Back View & Scaled) =====
+            let cachedPlayerNameW = 0;
+            let cachedPlayerName = '';
+            let animFrameScale = 1;
+            let smoothAnimScale = 1;
             function drawPlayer() {
                 const ti = ST.trackIndex;
                 const py = H * CFG.physics.playerY;
@@ -1535,7 +1611,7 @@
 
                 // 恢复落地形变
                 if (ST.landingScale < 1.0) {
-                    ST.landingScale += 0.05;
+                    ST.landingScale += 0.05 * animFrameScale;
                     if (ST.landingScale > 1.0) ST.landingScale = 1.0;
                 }
 
@@ -1628,17 +1704,29 @@
                 drawLimb(px + bodyW / 2 + 6 * sX, shoulderY + 8 * sY - armSwingY, px + bodyW / 2 + 8 * sX, shoulderY + 16 * sY - armSwingY * 1.5, skinColor, armW);
 
                 // 昵称标签 (纸条风格)
-                const textW = ctx.measureText(CFG.metadata.playerName).width;
                 const nameY = headY - headR - 10 * sY; // 头顶上方
 
-                ctx.font = `bold ${14 * sY}px "Microsoft YaHei"`; ctx.textAlign = 'center';
+                if (cachedPlayerName !== CFG.metadata.playerName) {
+                    ctx.save();
+                    ctx.font = "bold 14px 'PingFang SC', 'Microsoft YaHei'";
+                    cachedPlayerNameW = ctx.measureText(CFG.metadata.playerName).width;
+                    cachedPlayerName = CFG.metadata.playerName;
+                    ctx.restore();
+                }
+
+                ctx.save();
+                ctx.translate(px, nameY);
+                ctx.scale(sY, sY); // ✨ 利用矩阵缩放，避免重设 ctx.font
+
                 // 白色底标签
                 ctx.fillStyle = '#fff';
-                ctx.fillRect(px - textW / 2 - 4, nameY - 14, textW + 8, 18);
-                ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.strokeRect(px - textW / 2 - 4, nameY - 14, textW + 8, 18);
+                ctx.fillRect(-cachedPlayerNameW / 2 - 4, -14, cachedPlayerNameW + 8, 18);
+                ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.strokeRect(-cachedPlayerNameW / 2 - 4, -14, cachedPlayerNameW + 8, 18);
 
                 ctx.fillStyle = '#333';
-                ctx.fillText(CFG.metadata.playerName, px, nameY);
+                ctx.font = "bold 14px 'PingFang SC', 'Microsoft YaHei'"; // ✨ 静态字号
+                ctx.textAlign = 'center';
+                ctx.fillText(CFG.metadata.playerName, 0, 0);
 
                 ctx.restore();
             }
@@ -1665,7 +1753,7 @@
             // 构建游戏标题 (墨水风格 -> 跑道色)
             function drawGameTitle() {
                 ctx.save();
-                ctx.font = 'bold 36px "Microsoft YaHei"';
+                ctx.font = "bold 36px 'PingFang SC', 'Microsoft YaHei'";
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
 
@@ -1691,37 +1779,20 @@
 
                 // 1. 牛皮纸吊牌底座 (Kraft Paper Tag Base)
                 // 阴影
-                ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4;
+                ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
                 // 外圈 (深棕色/牛皮纸色)
                 ctx.fillStyle = '#8d6e63';
                 ctx.beginPath(); ctx.arc(0, 0, ringR, 0, Math.PI * 2); ctx.fill();
 
-                // 纹理 (简单噪点)
-                ctx.save();
-                ctx.fillStyle = 'rgba(0,0,0,0.1)';
-                for (let i = 0; i < 100; i++) {
-                    const r = Math.random() * ringR;
-                    const a = Math.random() * Math.PI * 2;
-                    ctx.fillRect(Math.cos(a) * r, Math.sin(a) * r, 2, 2);
-                }
-                ctx.restore();
+
 
                 // 2. 内圈 (米白纸)
                 const innerR = ringR * 0.82;
                 ctx.fillStyle = '#faf3e0'; // Warmer
                 ctx.beginPath(); ctx.arc(0, 0, innerR, 0, Math.PI * 2); ctx.fill();
 
-                // 内圈纹理 (增强)
-                ctx.save();
-                ctx.fillStyle = 'rgba(160, 140, 100, 0.08)'; // Brownish noise
-                for (let i = 0; i < 300; i++) {
-                    const r = Math.random() * innerR;
-                    const a = Math.random() * Math.PI * 2;
-                    const s = 1 + Math.random() * 2;
-                    ctx.fillRect(Math.cos(a) * r, Math.sin(a) * r, s, s);
-                }
-                ctx.restore();
+
 
                 // 纸张边缘内阴影效果
                 ctx.shadowColor = 'transparent';
@@ -1746,8 +1817,8 @@
                         ctx.fill();
                         // 光晕
                         ctx.save();
-                        ctx.shadowColor = 'rgba(255, 200, 50, 0.8)';
-                        ctx.shadowBlur = 6 * breathAlpha;
+                        ctx.shadowColor = 'transparent';
+                        ctx.shadowBlur = 0;
                         ctx.beginPath();
                         ctx.arc(dx, dy, 4, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(255, 215, 0, ${breathAlpha})`;
@@ -1770,7 +1841,7 @@
                 const remaining = Math.max(0, Math.ceil(CFG.rules.levelTime - ST.levelTime));
                 const timerFontSize = Math.floor(innerR * 0.35);
                 ctx.fillStyle = remaining <= 10 ? '#ff3c3c' : '#d63031';
-                ctx.font = `bold ${timerFontSize}px "Microsoft YaHei"`;
+                ctx.font = `bold ${timerFontSize}px 'PingFang SC', 'Microsoft YaHei'`;
                 ctx.fillText(remaining + 's', 0, -innerR * 0.45);
 
                 // 任务内容（根据阶段切换）
@@ -1778,13 +1849,13 @@
                     // 字找音：显示汉字
                     ctx.fillStyle = '#2d3436';
                     const fontSize = Math.floor(innerR * 0.8);
-                    ctx.font = `bold ${fontSize}px "Microsoft YaHei"`;
+                    ctx.font = `bold ${fontSize}px 'PingFang SC', 'Microsoft YaHei'`;
                     ctx.fillText(ST.currentTaskDisplay || '--', 0, innerR * 0.05);
                 } else {
                     // 音找字：显示拼音
                     ctx.fillStyle = '#2980b9';
                     const fontSize = Math.floor(innerR * 0.7);
-                    ctx.font = `bold ${fontSize}px "Microsoft YaHei"`;
+                    ctx.font = `bold ${fontSize}px 'PingFang SC', 'Microsoft YaHei'`;
                     ctx.fillText(ST.currentTaskDisplay || '--', 0, innerR * 0.05);
                 }
 
@@ -1792,12 +1863,12 @@
                 const currentList = ST.gamePhase === 'wordToSound' ? wordList : pinyinList;
                 const progressText = `${ST.completedWordCount + 1}/${currentList.length}`;
                 ctx.fillStyle = '#2d3436';
-                ctx.font = `bold ${Math.floor(innerR * 0.25)}px "Microsoft YaHei"`;
+                ctx.font = `bold ${Math.floor(innerR * 0.25)}px 'PingFang SC', 'Microsoft YaHei'`;
                 ctx.fillText(progressText, 0, innerR * 0.55);
 
                 // 阶段标签
                 ctx.fillStyle = '#888';
-                ctx.font = `${Math.floor(innerR * 0.18)}px "Microsoft YaHei"`;
+                ctx.font = `${Math.floor(innerR * 0.18)}px 'PingFang SC', 'Microsoft YaHei'`;
                 ctx.fillText(ST.gamePhase === 'wordToSound' ? '字找音' : '音找字', 0, -innerR * 0.72);
 
                 ctx.restore();
@@ -1876,15 +1947,16 @@
                 });
             }
 
-            function updateObjects() {
+            function updateObjects(dt) {
                 const diff = getDifficulty();
                 const py = H * CFG.physics.playerY;
+                const frameScale = dt * 60;
 
                 for (let i = ST.objects.length - 1; i >= 0; i--) {
                     const o = ST.objects[i];
                     // v2.8: 跑动时速度加倍
                     const speed = diff.speed * ST.runSpeedMultiplier;
-                    o.y += speed;
+                    o.y += speed * frameScale;
                     o.scale = perspScale(o.y);
 
                     // 碰撞检测
@@ -1922,13 +1994,45 @@
                     ctx.save();
                     ctx.translate(x, o.y);
 
+                    if (IS_SAFARI) {
+                        // Safari 轻量渲染分支：减少复杂路径和渐变导致的掉帧。
+                        if (o.type === 'obstacle') {
+                            const w = 44 * s;
+                            const h = 34 * s;
+                            ctx.fillStyle = '#d35400';
+                            ctx.fillRect(-w / 2, -h / 2, w, h);
+                            ctx.strokeStyle = '#8d6e63';
+                            ctx.lineWidth = Math.max(1, s * 1.5);
+                            ctx.strokeRect(-w / 2, -h / 2, w, h);
+                            ctx.fillStyle = '#f8f9fa';
+                            ctx.font = `bold ${Math.max(10, 10 * s)}px 'PingFang SC', 'Microsoft YaHei'`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('!', 0, 0);
+                        } else {
+                            const sz = 42 * s;
+                            ctx.fillStyle = '#f1c40f';
+                            ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+                            ctx.strokeStyle = '#d4ac0d';
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(-sz / 2, -sz / 2, sz, sz);
+                            ctx.fillStyle = '#2d3436';
+                            ctx.font = `bold ${Math.max(12, 20 * s)}px 'PingFang SC', 'Microsoft YaHei'`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(o.word, 0, 0);
+                        }
+                        ctx.restore();
+                        return;
+                    }
+
                     if (o.type === 'obstacle') {
                         // v3.3: 厚牛皮纸箱板立牌 (Thick Corrugated Cardboard)
                         const w = 50 * s;
                         const h = 40 * s;
 
                         // 阴影
-                        ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowOffsetY = 5 * s; ctx.shadowBlur = 6 * s;
+                        ctx.shadowColor = 'transparent'; ctx.shadowOffsetY = 0; ctx.shadowBlur = 0;
 
                         // 1. 立牌底座 (深色硬纸板)
                         ctx.fillStyle = '#5d4037';
@@ -1994,11 +2098,7 @@
                         }
                         ctx.stroke();
 
-                        // 材质噪点
-                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                        for (let k = 0; k < 20; k++) {
-                            ctx.fillRect(-w / 2 + Math.random() * w, -h / 2 + Math.random() * h, 2, 2);
-                        }
+
 
                         // 警告标识 (喷漆/印章效果)
                         const triSz = 12 * s;
@@ -2011,18 +2111,22 @@
                         ctx.fill();
 
                         // 感叹号
+                        ctx.save();
+                        ctx.translate(0, triY + triSz * 0.4);
+                        ctx.scale(s, s);
                         ctx.fillStyle = '#e67e22'; // 镂空
-                        ctx.font = `bold ${14 * s}px sans-serif`;
+                        ctx.font = "bold 14px sans-serif";
                         ctx.textAlign = 'center';
-                        ctx.fillText('!', 0, triY + triSz * 0.4);
+                        ctx.fillText('!', 0, 0);
+                        ctx.restore();
 
                     } else {
                         // v3.2: 统一不规则深黄色方形便签 (Irregular Dark Yellow Square)
                         const sz = 36 * s;
 
-                        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                        ctx.shadowOffsetY = 4 * s;
-                        ctx.shadowBlur = 3 * s;
+                        ctx.shadowColor = 'transparent';
+                        ctx.shadowOffsetY = 0;
+                        ctx.shadowBlur = 0;
 
                         // 深黄色
                         ctx.fillStyle = '#f1c40f'; // Vivid Yellow/Orange-Yellow
@@ -2044,23 +2148,20 @@
                         drawRoughPath(ctx, points, true);
                         ctx.fill();
 
-                        // 纸张纹理 (增加噪点)
-                        ctx.fillStyle = 'rgba(0,0,0,0.05)';
-                        for (let k = 0; k < 10; k++) {
-                            ctx.fillRect(-w / 2 + Math.random() * w, -h / 2 + Math.random() * h, 2, 2);
-                        }
-
                         ctx.shadowColor = 'transparent';
                         ctx.strokeStyle = '#d4ac0d'; // Darker border
                         ctx.lineWidth = 1;
                         ctx.stroke();
 
                         // 汉字 (墨水风)
+                        ctx.save();
+                        ctx.scale(s, s);
                         ctx.fillStyle = '#2d3436';
-                        ctx.font = `bold ${24 * s}px "Microsoft YaHei"`;
+                        ctx.font = "bold 24px 'PingFang SC', 'Microsoft YaHei'";
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText(o.word, 0, 0);
+                        ctx.restore();
 
                         // 拼音 (已移除)
                     }
@@ -2242,13 +2343,18 @@
                 ST.levelTimer = 0;
                 updateHUD();
                 // 任务提示音
-                setTimeout(() => {
+                const playTaskPrompt = () => {
                     if (ST.gamePhase === 'soundToWord') {
                         spellPinyin(ST.currentPinyin);
                     } else {
                         speakWord(ST.currentCorrectWord);
                     }
-                }, 300);
+                };
+                if (IS_CHROMIUM) {
+                    playTaskPrompt();
+                } else {
+                    setTimeout(playTaskPrompt, 300);
+                }
             }
 
             function endGame(allClear) {
@@ -2280,6 +2386,7 @@
                 }
                 ST.totalLevelsCleared = 0; ST.streakLevels = 0;
                 ST.objects = []; ST.particles = []; ST.roadLines = [];
+                roadLineSpawnAcc = 0;
                 ST.appearedCorrectWords.clear();
                 ST.lastTime = 0;
                 ST.gameOver = false; ST.running = true; ST.paused = false;
@@ -2332,6 +2439,20 @@
                 }
             }
 
+            let hudFrameTimer = 0;
+            function updateHUDThrottled(dt, force = false) {
+                if (force) {
+                    updateHUD();
+                    hudFrameTimer = 0;
+                    return;
+                }
+                hudFrameTimer += dt;
+                if (hudFrameTimer >= 0.12) {
+                    updateHUD();
+                    hudFrameTimer = 0;
+                }
+            }
+
             // ===== 物体生成计时器 =====
             let spawnTimer = 0;
             function updateSpawner(dt) {
@@ -2349,6 +2470,8 @@
                 if (!ST.running) return;
                 if (ST.lastTime === 0) ST.lastTime = timestamp;
                 const dt = Math.min((timestamp - ST.lastTime) / 1000, 0.05);
+                const frameScale = dt * 60;
+                smoothAnimScale = smoothAnimScale * 0.82 + frameScale * 0.18;
                 ST.lastTime = timestamp; ST.frameCount++;
                 if (ST.paused) return;
 
@@ -2369,16 +2492,16 @@
                 }
 
                 // v2.8.3: 检测长按并更新跑动状态
-                updateRunningState();
+                updateRunningState(dt);
 
                 // v2.8: 角色动画（跑动比走动快）
                 const animSpeed = ST.isRunning ? 0.2 : 0.12;
-                ST.playerAnim += animSpeed;
+                ST.playerAnim += animSpeed * smoothAnimScale;
 
                 // 跳跃物理 update (基于力学步动，不使用 dt)
                 if (!ST.isGrounded) {
-                    ST.playerJump -= ST.vy; // 速度应用到高度偏移
-                    ST.vy += CFG.physics.gravity; // 重力加速度应用到速度
+                    ST.playerJump -= ST.vy * frameScale; // 速度应用到高度偏移
+                    ST.vy += CFG.physics.gravity * frameScale; // 重力加速度应用到速度
 
                     // 落地检测
                     if (ST.playerJump <= 0) {
@@ -2393,11 +2516,12 @@
                 }
 
                 // 更新
-                updateRoadLines();
+                updateRoadLines(dt);
                 updateSpawner(dt);
-                updateObjects();
-                updateParticles();
-                updateHUD();
+                updateObjects(dt);
+                updateParticles(dt);
+                updateHUDThrottled(dt);
+                animFrameScale = smoothAnimScale;
 
                 // 绘制
                 ctx.clearRect(0, 0, W, H);
@@ -2482,7 +2606,7 @@
             });
 
             // v2.8.3: 检测长按并触发跑动
-            function updateRunningState() {
+            function updateRunningState(dt) {
                 if (upKeyPressed && !ST.isRunning) {
                     const pressDuration = Date.now() - upKeyPressTime;
                     if (pressDuration >= LONG_PRESS_THRESHOLD) {
@@ -2492,7 +2616,7 @@
                 }
                 // 更新跑动动画
                 if (ST.isRunning && !ST.paused) {
-                    ST.runAnimPhase = (ST.runAnimPhase + 0.2) % (Math.PI * 2);
+                    ST.runAnimPhase = (ST.runAnimPhase + 0.2 * smoothAnimScale) % (Math.PI * 2);
                 }
             }
 
@@ -2603,12 +2727,10 @@
 
             // ─── Web Speech 工具 (Task Board) 已由统一引擎接管 ───
 
-            // ─── 卡片交互（多模态：PC 鼠标 + Mobile 触摸 并存）───
+            // ─── 卡片交互（修复版：UI与音频完全解耦）───
             function initCardInteraction() {
                 const cards = document.querySelectorAll('#tb-grid .fc-container');
                 const data = CFG.dataSource.offlineData;
-                // 用时间窗口区分触摸产生的 mouseenter 和真实鼠标 mouseenter
-                // 触摸后 500ms 内的 mouseenter 视为触摸派生事件，忽略
                 let lastTouchTime = 0;
 
                 cards.forEach(card => {
@@ -2618,35 +2740,59 @@
 
                     // ─── PC：鼠标交互 ───
                     let hoverActive = false;
+                    let speechQueueTimer = null; // 用于管理连续音频播放的定时器
+                    const startCardSpeech = () => {
+                        stopSpeech(); // 打断之前的声音
+                        clearTimeout(speechQueueTimer);
+                        if (IS_CHROMIUM) {
+                            const phraseText = (item.words_std || '').split(/[、，,]/).filter(Boolean).join('，');
+                            const merged = [item.word, buildPinyinSpeechText(item.pinyin), phraseText].filter(Boolean).join('，');
+                            VoiceEngine.speak(merged, 0.82);
+                            return;
+                        }
+                        VoiceEngine.speak(item.word, 0.85);
+                        speechQueueTimer = setTimeout(() => {
+                            if (!hoverActive) return;
+                            spellPinyin(item.pinyin); // 拼读
+                            speechQueueTimer = setTimeout(() => {
+                                if (hoverActive) speakWords(item.words_std);
+                            }, 1500);
+                        }, 600);
+                    };
 
                     card.addEventListener('mouseenter', () => {
-                        // 如果刚刚发生过触摸（500ms内），忽略此次 mouseenter
                         if (Date.now() - lastTouchTime < 500) return;
                         hoverActive = true;
-                        if (card.classList.contains('flipped')) return;
-                        stopSpeech();
 
-                        // 串联朗读：先读汉字，再拼读，然后翻转读词语
-                        VoiceEngine.speak(item.word, 0.85, () => {
-                            if (!hoverActive) return;
-                            setTimeout(() => {
-                                if (!hoverActive) return;
-                                spellPinyin(item.pinyin, null, () => {
-                                    if (!hoverActive) return;
-                                    card.classList.add('flipped');
-                                    setTimeout(() => {
-                                        if (hoverActive) speakWords(item.words_std);
-                                    }, 500);
-                                }, () => hoverActive);
-                            }, 150);
-                        });
+                        // 【关键修复 1】：立即翻转，不等待音频！
+                        // 只有当卡片不在翻转状态时，才执行翻转
+                        if (!card.classList.contains('flipped')) {
+                            card.classList.add('flipped');
+                        }
+
+                        // Chromium 需要用户激活事件，改为 pointerdown 触发朗读。
+                        if (!IS_CHROMIUM) startCardSpeech();
+                    });
+
+                    card.addEventListener('pointerdown', () => {
+                        if (Date.now() - lastTouchTime < 500) return;
+                        hoverActive = true;
+                        if (!card.classList.contains('flipped')) {
+                            card.classList.add('flipped');
+                        }
+                        startCardSpeech();
                     });
 
                     card.addEventListener('mouseleave', () => {
                         if (Date.now() - lastTouchTime < 500) return;
                         hoverActive = false;
+
+                        // 立即翻回正面
                         card.classList.remove('flipped');
+
+                        // 立即停止声音并清除后续播放队列
                         stopSpeech();
+                        clearTimeout(speechQueueTimer);
                     });
 
                     // ─── Mobile：触摸交互 ───
@@ -2666,23 +2812,28 @@
                             tapTimer = setTimeout(() => {
                                 tapCount = 0;
                                 stopSpeech();
+
+                                // 手机端逻辑：点击翻转/折叠
+                                // 如果卡片已经是翻转状态，则翻回来
                                 if (card.classList.contains('flipped')) {
                                     card.classList.remove('flipped');
                                 } else {
-                                    // 触摸单次：读汉字 + 读拼音
-                                    VoiceEngine.speak(item.word, 0.85, () => {
-                                        setTimeout(() => {
-                                            spellPinyin(item.pinyin);
-                                        }, 150);
-                                    });
+                                    // 修正逻辑：单击只读不翻，双击翻转（保持您原代码意图），或者单击就翻
+                                    // 为了流畅性，建议：单击 = 读字 + 拼读
+                                    VoiceEngine.speak(item.word, 0.85);
+                                    setTimeout(() => spellPinyin(item.pinyin), 600);
                                 }
                             }, 250);
                         } else if (tapCount >= 2) {
                             clearTimeout(tapTimer);
                             tapCount = 0;
                             stopSpeech();
-                            card.classList.add('flipped');
-                            setTimeout(() => speakWords(item.words_std), 550);
+
+                            // 双击：立即翻转 + 读组词
+                            card.classList.toggle('flipped');
+                            if (card.classList.contains('flipped')) {
+                                speakWords(item.words_std);
+                            }
                         }
                     });
                 });
@@ -2694,10 +2845,9 @@
                 board.classList.remove('show');
                 stopSpeech();
 
+                warmUpTTS();
                 ensureAudio();
                 updateDataLists(); // 进入游戏前最后一次对齐数据
-                // 预热TTS使用空格而非空字符，空字符在Chrome会导致队列挂起
-                const v = new SpeechSynthesisUtterance(' '); v.volume = 0; window.speechSynthesis.speak(v);
                 startBGM();
 
                 // 设置游戏阶段
@@ -2737,14 +2887,43 @@
             document.getElementById('tb-btn-s2w').onclick = () => launchGameFromBoard('soundToWord');
             document.getElementById('tb-btn-w2s').onclick = () => launchGameFromBoard('wordToSound');
 
+            // ─── 关键修复：Chrome 语音预热与手势解锁 ───
+            function warmUpTTS() {
+                if (ttsUnlocked) {
+                    if ('speechSynthesis' in window) {
+                        try { window.speechSynthesis.resume(); } catch (e) { }
+                    }
+                    return;
+                }
+                ttsUnlocked = true;
+                // 1. 恢复 AudioContext (Chrome 策略)
+                ensureAudio();
+                // 2. 触发一个空的语音合成，以此获得浏览器播放权限
+                // 必须在用户点击事件堆栈中同步执行
+                if ('speechSynthesis' in window) {
+                    try { window.speechSynthesis.cancel(); } catch (e) { }
+                    // Chromium 对纯空白和纯静音更容易忽略，使用极低音量的短词作为稳态预热。
+                    let u = new SpeechSynthesisUtterance('开始');
+                    u.lang = 'zh-CN';
+                    u.volume = 0.01;
+                    u.rate = 1;
+                    u.onstart = () => { ttsReady = true; };
+                    u.onend = () => { ttsReady = true; };
+                    u.onerror = () => { ttsReady = false; };
+                    try { window.speechSynthesis.resume(); } catch (e) { }
+                    window.speechSynthesis.speak(u);
+                }
+                flushPendingSpeechOnGesture();
+            }
+            window.addEventListener('pointerdown', warmUpTTS, { once: true });
+            window.addEventListener('keydown', warmUpTTS, { once: true });
+            window.addEventListener('touchend', warmUpTTS, { once: true });
+
             document.getElementById('start-btn').onclick = () => {
+                warmUpTTS(); // <--- 关键调用：用户亲手点击按钮，激活全部 Audio 授权
                 const ss = document.getElementById('start-screen');
                 ss.style.opacity = '0';
                 setTimeout(() => ss.remove(), 600);
-                ensureAudio();
-                // 预热 TTS
-                // 预热TTS使用空格而非空字符
-                const v = new SpeechSynthesisUtterance(' '); v.volume = 0; window.speechSynthesis.speak(v);
                 // 打开任务看板而非直接启动游戏
                 openTaskBoard();
             };
