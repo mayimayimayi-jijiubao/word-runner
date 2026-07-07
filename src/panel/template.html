@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Safari防缓存/强制重载标签 -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="color-scheme" content="light only">
+    <title>WordRunMaster — 配置中心 v3.5.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+@@CSS@@
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>配置中心</h1>
+                <span class="version">v2.0</span>
+            </div>
+        </div>
+
+        <!-- ═══════ 1. 物理引擎 ═══════ -->
+        <div class="section" id="sec-physics">
+            <div class="section-header" onclick="toggleSection('sec-physics')">
+                <div class="section-title"><span class="icon">⚙️</span> 物理引擎</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <!-- 障碍物缩放 -->
+                <div class="subsection">
+                    <div class="sub-label">障碍物缩放</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>障碍物近端大小</label>
+                            <span class="val" data-for="physical_engine.obstacleScale.near">1.0</span>
+                        </div>
+                        <input type="range" id="physical_engine.obstacleScale.near" min="0.5" max="2.0" step="0.05"
+                            value="1.0">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>障碍物远端大小</label>
+                            <span class="val" data-for="physical_engine.obstacleScale.far">0.15</span>
+                        </div>
+                        <input type="range" id="physical_engine.obstacleScale.far" min="0.05" max="0.5" step="0.01"
+                            value="0.15">
+                    </div>
+                </div>
+
+                <!-- 任务项缩放 -->
+                <div class="subsection">
+                    <div class="sub-label">任务项缩放</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>任务项近端大小</label>
+                            <span class="val" data-for="physical_engine.itemScale.near">0.9</span>
+                        </div>
+                        <input type="range" id="physical_engine.itemScale.near" min="0.5" max="2.0" step="0.05"
+                            value="0.9">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>任务项远端大小</label>
+                            <span class="val" data-for="physical_engine.itemScale.far">0.15</span>
+                        </div>
+                        <input type="range" id="physical_engine.itemScale.far" min="0.05" max="0.5" step="0.01"
+                            value="0.15">
+                    </div>
+                </div>
+
+                <!-- 运动学参数 -->
+                <div class="subsection">
+                    <div class="sub-label">运动学参数</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>跳跃冲力<span class="unit">（数值）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.jumpForce"
+                                value="12" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.jumpForce"
+                                value="15" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.jumpForce"
+                                value="18" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>重力加速度<span class="unit">（g）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
+                                step="0.1" value="0.6" onclick="selectEditablePreset(this)"
+                                oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
+                                step="0.1" value="0.8" onclick="selectEditablePreset(this)"
+                                oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="physical_engine.physics.gravity"
+                                step="0.1" value="1.0" onclick="selectEditablePreset(this)"
+                                oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 2. 单元关卡设置 ═══════ -->
+        <div class="section" id="sec-unit">
+            <div class="section-header" onclick="toggleSection('sec-unit')">
+                <div class="section-title"><span class="icon">📚</span> 单元关卡设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <!-- CSV 上传 -->
+                <div class="subsection">
+                    <div class="sub-label">单元数据来源</div>
+                    <div class="file-upload-area" id="csv-upload-area"
+                        onclick="document.getElementById('csv-file-input').click()">
+                        <div class="file-upload-icon">📄</div>
+                        <div class="file-upload-text">点击上传 CSV 文件</div>
+                        <div class="file-upload-name" id="csv-file-name"></div>
+                    </div>
+                    <input type="file" id="csv-file-input" accept=".csv" style="display:none">
+                </div>
+
+                <!-- 单元信息 -->
+                <div class="subsection">
+                    <div class="sub-label">单元信息</div>
+                    <div class="field">
+                        <input type="text" id="unit_settings.unitName" value="" placeholder="上传CSV后自动填入文件名，可修改">
+                    </div>
+                </div>
+
+                <!-- 关卡模式 -->
+                <div class="subsection">
+                    <div class="sub-label">单元关卡设置</div>
+                    <div class="mode-tabs">
+                        <div class="mode-tab active" data-mode="soundToWord" onclick="switchMode(this)">音找字</div>
+                        <div class="mode-tab" data-mode="wordToSound" onclick="switchMode(this)">字找音</div>
+                    </div>
+
+                    <!-- 音找字 数据关联 -->
+                    <div class="data-assoc" id="assoc-soundToWord">
+                        <div class="assoc-title">「音找字」数据关联设置</div>
+                        <div class="assoc-item">任务区数据来源：<strong>pinyin</strong></div>
+                        <div class="assoc-item">正确项数据来源：<strong>word</strong></div>
+                        <div class="assoc-rule">正确项规则1：同音字不可同时出现</div>
+                        <div class="assoc-rule">正确项规则2：多音字只读 pinyin 中的读音</div>
+                        <div class="assoc-item">干扰项数据来源：<strong>word</strong></div>
+                        <div class="assoc-rule">干扰项规则：排除同音字</div>
+                    </div>
+
+                    <!-- 字找音 数据关联 -->
+                    <div class="data-assoc" id="assoc-wordToSound" style="display:none">
+                        <div class="assoc-title">「字找音」数据关联设置</div>
+                        <div class="assoc-item">任务区数据来源：<strong>word</strong></div>
+                        <div class="assoc-item">正确项数据来源：<strong>pinyin</strong></div>
+                        <div class="assoc-rule">正确项规则：多音字只读 pinyin 中的读音</div>
+                        <div class="assoc-item">干扰项数据来源：<strong>pinyin</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 3. 小关通关设置 ═══════ -->
+        <div class="section" id="sec-level">
+            <div class="section-header" onclick="toggleSection('sec-level')">
+                <div class="section-title"><span class="icon">🏁</span> 小关通关设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <div class="subsection">
+                    <div class="sub-label">通关条件</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>通关时间<span class="unit">（秒）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
+                                value="30" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
+                                value="40" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.timeLimit"
+                                value="50" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>累计撞击正确项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
+                                value="6" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
+                                value="8" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.targetCount"
+                                value="10" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>连续撞击正确项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
+                                value="3" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
+                                value="4" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.goals.comboTarget"
+                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="sub-label">失败条件</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>累计撞击错误项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
+                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
+                                value="6" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.totalWrong"
+                                value="7" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>连续撞击错误项<span class="unit">（个）</span></label>
+                        </div>
+                        <div class="preset-group">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
+                                value="3" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
+                                value="4" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                            <input type="number" class="preset-num" data-target="level_settings.fail.comboWrong"
+                                value="5" onclick="selectEditablePreset(this)" oninput="selectEditablePreset(this)">
+                        </div>
+                    </div>
+                    <div class="readonly-field">
+                        <span class="dot"></span> 生命值为0（不可设置）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 4. 难度设置 ═══════ -->
+        <div class="section" id="sec-difficulty">
+            <div class="section-header" onclick="toggleSection('sec-difficulty')">
+                <div class="section-title"><span class="icon">📊</span> 难度设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <div class="subsection">
+                    <div class="sub-label">生成密度</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>正确项密度概率</label>
+                            <span class="val" data-for="difficulty.spawn.targetDensity">0.6</span>
+                        </div>
+                        <input type="range" id="difficulty.spawn.targetDensity" min="0.1" max="1.0" step="0.05"
+                            value="0.6">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>干扰项密度概率</label>
+                            <span class="val" data-for="difficulty.spawn.distractorDensity">0.3</span>
+                        </div>
+                        <input type="range" id="difficulty.spawn.distractorDensity" min="0.1" max="1.0" step="0.05"
+                            value="0.3">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>障碍物密度概率</label>
+                            <span class="val" data-for="difficulty.spawn.obstacleDensity">0.3</span>
+                        </div>
+                        <input type="range" id="difficulty.spawn.obstacleDensity" min="0.1" max="1.0" step="0.05"
+                            value="0.3">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 5. 计分系统 ═══════ -->
+        <div class="section" id="sec-scoring">
+            <div class="section-header" onclick="toggleSection('sec-scoring')">
+                <div class="section-title"><span class="icon">🏆</span> 计分系统</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <!-- 基础得分 -->
+                <div class="subsection">
+                    <div class="sub-label">基础得分</div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>撞击正确项得分<span class="unit">（分）</span></label>
+                        </div>
+                        <input type="number" id="scoring.base.hitTarget" step="1" value="10">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>撞击干扰项扣分<span class="unit">（分）</span></label>
+                        </div>
+                        <input type="number" id="scoring.base.hitDistractor" step="1" value="-3">
+                    </div>
+                    <div class="field">
+                        <div class="field-head">
+                            <label>撞击障碍物<span class="unit">（分）</span></label>
+                        </div>
+                        <input type="number" id="scoring.base.hitObstacle" step="1" value="-5">
+                    </div>
+                </div>
+
+                <!-- 连击奖励 -->
+                <div class="subsection">
+                    <div class="sub-label">连击奖励</div>
+                    <div class="field">
+                        <div class="field-head"><label>2连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo2" step="5" value="20">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>3连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo3" step="5" value="30">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>4连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo4" step="5" value="40">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>5连击加分<span class="unit">（分）</span></label></div>
+                        <input type="number" id="scoring.combo.combo5" step="5" value="50">
+                    </div>
+                    <p class="info-text">※ 奖励计分统计规则：连续连击取最后一次最高奖励</p>
+                </div>
+
+                <!-- 生命值 -->
+                <div class="subsection">
+                    <div class="sub-label">生命值</div>
+                    <div class="field">
+                        <div class="field-head"><label>初始生命值<span class="unit">（条）</span></label></div>
+                        <input type="number" id="scoring.lives.initLives" step="1" min="1" value="3">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>撞击干扰项扣生命<span class="unit">（条）</span></label></div>
+                        <input type="number" id="scoring.lives.distractorDamage" step="0.5" min="0" value="0.5">
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label>撞击障碍物扣生命<span class="unit">（条）</span></label></div>
+                        <input type="number" id="scoring.lives.obstacleDamage" step="0.5" min="0" value="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ 6. 角色设置 ═══════ -->
+        <div class="section" id="sec-character">
+            <div class="section-header" onclick="toggleSection('sec-character')">
+                <div class="section-title"><span class="icon">👤</span> 角色设置</div>
+                <div class="section-toggle">▼</div>
+            </div>
+            <div class="section-body">
+                <div class="subsection">
+                    <div class="sub-label">角色昵称</div>
+                    <div class="field">
+                        <input type="text" id="character.nickname" value="贝贝">
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="sub-label">角色等级</div>
+                    <table class="grade-table">
+                        <thead>
+                            <tr>
+                                <th>等级</th>
+                                <th>名称</th>
+                                <th>条件（分）</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grade-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <button class="btn-save" id="btn-save">💾 保存配置</button>
+            <button class="btn-download" id="btn-download">📥 下载分享</button>
+            <button class="btn-reset" id="btn-reset">恢复默认</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">✓ 配置已保存至本地存储</div>
+
+    <script>
+@@JS@@
+    </script>
+</body>
+
+</html>

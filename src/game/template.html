@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <!-- Safari防缓存/强制重载标签 -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>字跑大师</title>
+    <style>
+@@CSS@@
+    </style>
+</head>
+
+<body>
+    <div id="start-screen">
+        <h1>字跑大师</h1>
+        <div class="sub">Word Runner Master</div>
+        <button id="start-btn">开始学习</button>
+    </div>
+
+    <!-- ═══ 任务看板 ═══ -->
+    <div id="task-board">
+        <div class="tb-header">
+            <h1 id="tb-title">单元信息</h1>
+            <p class="tb-summary" id="tb-summary"></p>
+        </div>
+        <div class="tb-grid-wrap">
+            <div class="tb-grid" id="tb-grid"></div>
+        </div>
+        <div class="tb-footer">
+            <button class="tb-btn-s2w" id="tb-btn-s2w">音找字</button>
+            <button class="tb-btn-w2s" id="tb-btn-w2s">字找音</button>
+        </div>
+    </div>
+    <div id="wrap">
+        <canvas id="gc"></canvas>
+        <div id="hud">
+            <div class="row top-bar">
+                <div class="group-left">
+                    <span class="hud-note" id="hud-level">Lv.1 识字新兵</span>
+                    <span class="hud-note" id="hud-score">0分</span>
+                </div>
+                <div class="group-right">
+                    <span class="hud-note" id="hud-hearts">❤️❤️❤️</span>
+                </div>
+            </div>
+            <span id="hud-timer" style="display:none">40s</span>
+            <div class="task" id="hud-task">准备起跑</div>
+            <div style="text-align:center"><span id="hud-combo" class="combo"></span></div>
+        </div>
+    </div>
+
+    <div id="game-over">
+        <h2>游戏结束</h2>
+        <div class="stats" id="go-stats"></div><button id="go-restart">再来一局</button>
+    </div>
+    <div id="level-clear">
+        <h2 id="lc-title">过关！</h2>
+        <div class="info" id="lc-info"></div><button id="lc-next">下一关</button>
+    </div>
+
+    <div id="phase-transition">
+        <h2>🎉 音找字关卡已完成！</h2>
+        <div class="info">接下来进入“字找音”关卡<br>任务区将显示汉字，跑道上出现拼音</div>
+        <button id="phase-next-btn">进入字找音关卡</button>
+    </div>
+
+    <script>
+@@JS@@
+    </script>
+</body>
+
+</html>

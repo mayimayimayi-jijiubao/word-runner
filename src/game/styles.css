@@ -1,0 +1,594 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #2d3436;
+            /* Deep Grey Background */
+            font-family: 'PingFang SC', 'Microsoft YaHei', "PingFang SC", sans-serif;
+            touch-action: none;
+            user-select: none
+        }
+
+        #wrap {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated
+        }
+
+        /* HUD: Top Status Bar - All on Top Right */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Level & Score -> Top Left (stacked vertically) */
+        #hud .group-left {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        /* Hearts -> Top Right */
+        #hud .group-right {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        /* Hide the container row if it exists */
+        #hud .row.top-bar {
+            display: block;
+        }
+
+        /* Yellow Sticky Note Style with Lines */
+        .hud-note {
+            background-color: #ffeaa7;
+            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
+            color: #2d3436;
+            padding: 6px 12px;
+            border-radius: 2px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: none;
+            border: 1px solid #e0cba0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+        }
+
+        /* Specific rotations for natural feel */
+        .hud-note:nth-child(odd) {
+            transform: rotate(-1deg);
+        }
+
+        .hud-note:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        #hud .task {
+            display: none
+        }
+
+        #hud-hearts {
+            /* Hearts can be on white or yellow, user asked for yellow note background for status bar */
+            color: #d63031;
+        }
+
+        #hud-score {
+            color: #d63031;
+            font-family: "Comic Sans MS", "Marker Felt", sans-serif;
+            font-size: 20px;
+        }
+
+        #hud-level {
+            font-size: 14px;
+            color: #636e72;
+        }
+
+        #hud-timer {
+            /* Timer is now drawn on canvas inside the task ring */
+            display: none !important;
+        }
+
+        #hud .combo {
+            position: absolute;
+            top: 42%;
+            /* Middle of runway */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #fdcb6e;
+            text-shadow: 2px 2px 0 #d63031;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity .1s, transform .1s;
+            pointer-events: none;
+            z-index: 20;
+            white-space: nowrap;
+        }
+
+        #hud .combo.fade-out {
+            opacity: 0 !important;
+            transform: translate(-50%, -80%);
+        }
+
+        /* Phase Transition Popup */
+        #phase-transition {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(45, 52, 54, 0.95);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        #phase-transition h2 {
+            font-size: 36px;
+            color: #00ffcc;
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+            margin-bottom: 16px;
+        }
+
+        #phase-transition .info {
+            font-size: 20px;
+            color: #dfe6e9;
+            line-height: 2;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        #phase-transition button {
+            padding: 12px 40px;
+            font-size: 24px;
+            background-color: #ffeaa7;
+            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
+            border: 1px solid #e0cba0;
+            border-radius: 2px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2d3436;
+            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
+            transform: rotate(-1deg);
+            transition: transform 0.2s;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        #phase-transition button:hover {
+            transform: scale(1.05) rotate(0deg);
+        }
+
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            background-color: #F5F0E8;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #2d3436;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        #start-screen h1 {
+            font-size: 72px;
+            color: #2d3436;
+            margin-bottom: 12px;
+            letter-spacing: 8px;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        #start-screen .sub {
+            color: #636e72;
+            font-size: 16px;
+            letter-spacing: 4px;
+            margin-bottom: 80px;
+            text-transform: uppercase;
+        }
+
+        #start-screen button {
+            padding: 16px 64px;
+            font-size: 24px;
+            /* Sticky Note Style */
+            background-color: #ffeaa7;
+            background-image: repeating-linear-gradient(transparent, transparent 19px, rgba(0, 0, 0, 0.05) 20px);
+            border: 1px solid #e0cba0;
+            border-radius: 2px;
+            cursor: pointer;
+            font-weight: 900;
+            color: #2d3436;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            transform: rotate(-1.5deg);
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        #start-screen button:hover {
+            transform: scale(1.05) rotate(0deg);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #start-screen button:active {
+            transform: scale(0.98);
+        }
+
+        #start-screen button:hover {
+            transform: scale(1.05) rotate(-1deg);
+            box-shadow: 6px 6px 10px rgba(0, 0, 0, 0.5)
+        }
+
+
+        #game-over {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            z-index: 80;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff
+        }
+
+        #game-over h2 {
+            font-size: 36px;
+            color: #ff6b6b;
+            margin-bottom: 16px
+        }
+
+        #game-over .stats {
+            font-size: 16px;
+            line-height: 2;
+            text-align: center;
+            margin-bottom: 24px
+        }
+
+        #game-over button {
+            padding: 14px 48px;
+            font-size: 18px;
+            background: #00ffcc;
+            color: #003d33;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold
+        }
+
+        #level-clear {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(45, 52, 54, 0.95);
+            /* Dark Grey translucent */
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        #level-clear h2 {
+            font-size: 48px;
+            color: #fdcb6e;
+            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        #level-clear .info {
+            font-size: 24px;
+            color: #dfe6e9;
+            line-height: 2;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        #level-clear button {
+            padding: 12px 40px;
+            font-size: 24px;
+            /* Sticky Note Style */
+            background-color: #ffeaa7;
+            background-image: repeating-linear-gradient(transparent, transparent 19px, #ccc 20px);
+            border: 1px solid #e0cba0;
+            border-radius: 2px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2d3436;
+            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.4);
+            transform: rotate(1deg);
+            transition: transform 0.2s;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        #level-clear button:hover {
+            transform: scale(1.05) rotate(0deg);
+        }
+
+        /* ═══ 任务看板 Task Board ═══ */
+        #task-board {
+            position: fixed;
+            inset: 0;
+            background: #F5F0E8;
+            color-scheme: light;
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+        }
+
+        #task-board.show {
+            display: flex;
+        }
+
+        .tb-header {
+            text-align: center;
+            padding: 24px 20px 0;
+            flex-shrink: 0;
+        }
+
+        .tb-header h1 {
+            font-size: 22px;
+            color: #2d3436;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+
+        .tb-header .tb-summary {
+            font-size: 14px;
+            color: #636e72;
+            line-height: 1.8;
+        }
+
+        .tb-header .tb-summary em {
+            font-style: normal;
+            font-weight: 700;
+            color: #d63031;
+        }
+
+        .tb-grid-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 14px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* ─── Flashcard ─── */
+        .fc-container {
+            perspective: 800px;
+            height: 160px;
+            cursor: pointer;
+            /* 确保鼠标事件由 container 接收，不被 3D 子元素拦截 */
+        }
+
+        .fc-inner,
+        .fc-front,
+        .fc-back {
+            pointer-events: none;
+        }
+
+        .fc-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+            will-change: transform;
+        }
+
+        .fc-container.flipped .fc-inner {
+            transform: rotateY(180deg);
+        }
+
+        .fc-front,
+        .fc-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 8px;
+            background: #EDEAE3;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .fc-back {
+            transform: rotateY(180deg);
+            background: #EDEAE3;
+        }
+
+        /* Front */
+        .fc-front .fc-word {
+            font-size: 52px;
+            font-weight: 900;
+            color: #1a1a1a;
+            line-height: 1.1;
+        }
+
+        .fc-front .fc-pinyin {
+            font-size: 16px;
+            color: #4a9eeb;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        /* Back */
+        .fc-back .fc-word-back {
+            font-size: 36px;
+            font-weight: 900;
+            color: #c0392b;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+
+        .fc-back .fc-radical {
+            font-size: 13px;
+            color: #636e72;
+            margin-bottom: 8px;
+        }
+
+        .fc-back .fc-radical span {
+            color: #c0392b;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .fc-back .fc-words-list {
+            font-size: 15px;
+            color: #2d3436;
+            text-align: center;
+            line-height: 1.6;
+            word-break: break-all;
+        }
+
+        .fc-back .fc-words-list .hl {
+            color: #c0392b;
+            font-weight: 700;
+        }
+
+        .tb-footer {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding: 16px 20px 28px;
+            flex-shrink: 0;
+        }
+
+        .tb-footer button {
+            padding: 12px 36px;
+            font-size: 18px;
+            font-weight: 900;
+            border: 1px solid #e0cba0;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-image: repeating-linear-gradient(transparent, transparent 17px, rgba(0, 0, 0, 0.04) 18px);
+            box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tb-btn-s2w {
+            background-color: #fdcb6e;
+            /* Deep Yellow */
+            color: #2d3436;
+            transform: rotate(-1deg);
+        }
+
+        .tb-btn-s2w:hover {
+            transform: scale(1.05) rotate(0deg);
+            background-color: #ffb142;
+        }
+
+        .tb-btn-w2s {
+            background-color: #ffeaa7;
+            /* Light Yellow */
+            color: #2d3436;
+            transform: rotate(1.2deg);
+        }
+
+        .tb-btn-w2s:hover {
+            transform: scale(1.05) rotate(0deg);
+            background-color: #ffe082;
+        }
+
+        @media (max-width: 480px) {
+            .tb-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .fc-container {
+                height: 140px;
+            }
+
+            .fc-front .fc-word {
+                font-size: 42px;
+            }
+
+            .fc-back .fc-word-back {
+                font-size: 28px;
+            }
+
+            .tb-footer button {
+                padding: 10px 24px;
+                font-size: 16px;
+            }
+
+            .tb-header h1 {
+                font-size: 18px;
+            }
+        }
+
+        /* ═══ 任务看板 样式修正 ═══ */
+        .fc-back .fc-radical {
+            margin-bottom: 10px !important;
+        }
+
+        .fc-back .fc-radical span {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #C0392B !important;
+            margin-left: 4px !important;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .fc-back .fc-words-list {
+            line-height: 1.6 !important;
+        }
+
+        .fc-back .fc-words-list .hl {
+            color: #C0392B !important;
+            font-weight: 700 !important;
+        }

@@ -40,9 +40,33 @@
 *   **开始/暂停**: 界面按钮点击 或 `Space` 键。
 
 ## 📁 文件结构
-*   `index.html`: 主游戏引擎，包含渲染逻辑、物理引擎和音频系统。
-*   `control_panel.html`: v3.5 高级配置中心，支持可视化调整所有游戏参数并导出独立版。
-*   `README.md`: 项目文档（本文）。
+*   `index.html`: 主游戏引擎（**构建产物**，请勿手改，见下方开发工作流）。
+*   `control_panel.html`: v3.5 高级配置中心（**构建产物**），可视化调整参数并导出独立版。
+*   `workbench.html`: 数据生成平台，从课本 PDF/TXT 提取生词生成 CSV。
+*   `src/`: 源码目录，`game/` 对应 index.html，`panel/` 对应 control_panel.html。
+*   `build.py`: 构建脚本，把 `src/` 拼回单文件产物。
+*   `tests/test_build.py`: 构建守护测试（产物一致性 + 导出注入契约 + 离线依赖）。
+*   `vendor/`: 本地化的第三方库（pdf.js、pinyin-pro），workbench 离线可用。
+*   `csv/`、`PDF/`: 单元生词数据与课本原始材料。
+
+## 🔧 开发工作流（v3.5.1 起）
+
+`index.html` 和 `control_panel.html` 是**构建产物**，同时也是发布形态（可直接双击运行、可被控制面板「下载分享」注入导出）。改代码请改 `src/`：
+
+```bash
+# 1. 修改 src/game/js/*.js、src/game/styles.css、src/game/template.html 等
+# 2. 重新构建产物
+python3 build.py
+# 3. 跑守护测试
+python3 tests/test_build.py
+# 4. 本地预览（带 no-cache 头）
+python3 serve.py 8080
+```
+
+注意：
+*   `src/*/js/` 下的片段按文件名顺序拼进**同一个** `<script>` 块，共享同一个 IIFE 作用域，它们不是独立 ES 模块，变量可跨片段引用。
+*   游戏引擎的默认配置块在 `src/game/js/01-config-block.js`；控制面板导出时通过在 `</head>` 前注入 `window.OFFLINE_CONFIG` 覆盖它，这两个锚点（`</head>`、`<title>字跑大师</title>`）受守护测试保护，不要破坏。
+*   历史手工 `.bak` 备份已清理，全部存档在 git tag `pre-refactor-20260707`，此后请用 git 提交/打 tag 管理版本。
 
 ---
 *Created by Antigravity Agent*
