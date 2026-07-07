@@ -27,3 +27,6 @@ yarn-error.log*
 temp/
 dist/
 build/
+
+# Manual backups — use git history/tags instead (see tag pre-refactor-20260707)
+*.bak*
